@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    color: #1D1C1C;
+    background-color: #FAF7F2;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+}
+
+.animated-gradient {
+  background: linear-gradient(121deg, #83f582 0%, #FFF48D 50%, #FFB88C 100%);
+  background-size: 200% 200%;
+  animation: gradient-bg 12s ease infinite;
+}
+
+@keyframes gradient-bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.noise-overlay {
+  background-image: radial-gradient(#1D1C1C 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+.brutalist-card {
+  border: 3px solid #1D1C1C;
+  box-shadow: 3px 3px 0px #1D1C1C;
+  border-radius: 1rem;
+  background-color: #FFFFFF;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .brutalist-card {
+    border-width: 3px;
+    box-shadow: 5px 5px 0px #1D1C1C;
+  }
+}
+
+.brutalist-card-interactive {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brutalist-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0px #1D1C1C;
+}
+
+.brutalist-card-interactive:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1.5px 1.5px 0px #1D1C1C;
+}
+
+/* Smooth Entrance & Exit Animations */
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-down-fade {
+  animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+
+.animate-slide-up-fade-out {
+  animation: slideUpFadeOut 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
