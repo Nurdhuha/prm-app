@@ -3,6 +3,11 @@ node_modules/
 /.pnp
 .pnp.js
 
+# Internal Documentation & Notes
+/docs/
+*.md
+*.MD
+
 # Testing & Scratch
 /scratch
 *.zip
