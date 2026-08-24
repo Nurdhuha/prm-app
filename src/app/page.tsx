@@ -73,6 +73,8 @@ export default function Home() {
         ) || null
       : null;
 
+  const [isJustLoggedIn, setIsJustLoggedIn] = useState(false);
+
   // Handle Login & Register Success from AuthModal
   const handleSuccessLogin = (email: string) => {
     const isSuper = email.toLowerCase().includes('nurdhuha.23100');
@@ -83,6 +85,8 @@ export default function Home() {
     };
 
     setSession(newSession);
+    setIsJustLoggedIn(true);
+    setTimeout(() => setIsJustLoggedIn(false), 700);
 
     // Save session automatically for auto-login on return
     try {
@@ -181,7 +185,7 @@ export default function Home() {
         <AuthModal isOpen={!session.isLoggedIn} onSuccessLogin={handleSuccessLogin} />
 
         {session.isLoggedIn && (
-          <div className="space-y-6">
+          <div className={`space-y-6 ${isJustLoggedIn ? 'animate-page-transition' : ''}`}>
             {/* Navigation Tabs for Mahasiswa & Superadmin View on Main Route / */}
             <div className="flex items-center justify-center gap-3">
               <button

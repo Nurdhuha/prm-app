@@ -95,3 +95,38 @@
 .animate-slide-up-fade-out {
   animation: slideUpFadeOut 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards;
 }
+
+/* Custom Neo-Brutalist Login to Form Page Transition Animations */
+@keyframes pageTransitionIn {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-page-transition {
+  animation: pageTransitionIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalSuccessOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-15px);
+  }
+}
+
+.animate-modal-success-out {
+  animation: modalSuccessOut 0.3s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
