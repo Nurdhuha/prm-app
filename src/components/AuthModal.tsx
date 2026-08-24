@@ -115,11 +115,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const tempPassword = `Prm${randomCode}!#`;
+    setResetCode(randomCode);
+
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RESET_PASSWORD',
+          email: email.trim().toLowerCase(),
+          password: tempPassword,
+        }),
+      });
+    } catch (err) {
+      console.error('Send reset email error:', err);
+    } finally {
       setIsLoading(false);
       setForgotSent(true);
-      setSuccessMsg(`Kode reset verifikasi telah dikirim ke ${email}. Silakan cek inbox email Anda.`);
-    }, 400);
+      setSuccessMsg(`Instruksi & password reset telah dikirimkan ke email ${email}. Silakan periksa inbox email Anda.`);
+    }
   };
 
   const handleResetPasswordSubmit = async (e: React.FormEvent) => {
