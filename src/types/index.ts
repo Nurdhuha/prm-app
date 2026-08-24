@@ -10,7 +10,7 @@ export interface UKM {
   deskripsi: string;
   logo: string;
   pembina: string;
-  status?: 'open' | 'closed';
+  status?: 'open' | 'closed' | 'tutup' | string;
 }
 
 export interface MahasiswaProfile {

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { LIST_UKM, FAKULTAS_UNESA, PRODI_UNESA } from '@/data/mockData';
 import { MahasiswaProfile, PendaftaranUKM } from '@/types';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
-import { IconSearch, IconCheck, IconSend, IconAlert, IconInfo, IconX } from './NeoIcons';
+import { IconSearch, IconCheck, IconSend, IconAlert, IconInfo, IconX, IconLock } from './NeoIcons';
 
 interface RegistrationFormProps {
   userEmail: string;
@@ -150,6 +150,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   // Toggle Selection
   const handleToggleSelectUkm = (targetUkmId: string) => {
     if (isLocked) return;
+    const targetUkm = ukmOptions.find((u) => u.id === targetUkmId);
+    if (targetUkm && (targetUkm.status === 'closed' || targetUkm.status === 'tutup')) {
+      alert(`Pendaftaran untuk UKM "${targetUkm.nama}" saat ini sedang DITUTUP oleh Pengurus.`);
+      return;
+    }
     setDraftValue((prev) => ({
       ...prev,
       ukmId: prev.ukmId === targetUkmId ? '' : targetUkmId,
@@ -474,6 +479,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             {(showAllMobileUkms ? filteredUkms : filteredUkms).map((ukm, idx) => {
               const isSelected = draft.ukmId === ukm.id;
               const isHiddenOnMobile = !showAllMobileUkms && idx >= 10;
+              const isClosed = ukm.status === 'closed' || ukm.status === 'tutup';
 
               return (
                 <div
@@ -482,6 +488,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   className={`p-3.5 sm:p-4 rounded-xl border-2 sm:border-3 border-[#1D1C1C] transition-all relative flex flex-col justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-[#83F582] shadow-[3px_3px_0px_#1D1C1C] sm:shadow-[4px_4px_0px_#1D1C1C] -translate-y-0.5 ring-2 ring-[#1D1C1C]'
+                      : isClosed
+                      ? 'bg-stone-100 opacity-60 shadow-none cursor-not-allowed'
                       : 'bg-white shadow-[2px_2px_0px_#1D1C1C] sm:shadow-[2.5px_2.5px_0px_#1D1C1C] hover:-translate-y-0.5'
                   } ${isLocked ? 'opacity-60 cursor-not-allowed' : ''} ${
                     isHiddenOnMobile ? 'hidden md:flex' : 'flex'
@@ -494,9 +502,17 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                         {ukm.kategori}
                       </span>
 
-                      {isSelected && (
+                      {isClosed ? (
+                        <span className="bg-[#D64545] text-white px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1">
+                          <IconLock className="w-3 h-3 text-white" /> Ditutup
+                        </span>
+                      ) : isSelected ? (
                         <span className="bg-[#1D1C1C] text-[#83F582] px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1">
                           <IconCheck className="w-3 h-3 text-[#83F582]" /> Terpilih
+                        </span>
+                      ) : (
+                        <span className="bg-[#83F582] text-[#1D1C1C] border border-[#1D1C1C] px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase">
+                          Terbuka
                         </span>
                       )}
                     </div>
@@ -508,6 +524,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     <p className="text-[11px] sm:text-xs font-medium text-stone-700 line-clamp-2">
                       {ukm.deskripsi}
                     </p>
+
+                    {ukm.pembina && (
+                      <div className="mt-2 text-[10px] font-bold text-stone-600 flex items-center gap-1">
+                        <span>Pembina: {ukm.pembina}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

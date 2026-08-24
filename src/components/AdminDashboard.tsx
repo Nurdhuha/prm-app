@@ -121,7 +121,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setUkmForm({
       id: `ukm-${(ukmMasterList.length > 0 ? ukmMasterList.length : LIST_UKM.length) + 1}`,
       nama: '',
-      kategori: 'Olahraga',
+      kategori: 'Olahraga & Bela Diri',
       deskripsi: '',
       pembina: 'UNESA',
       status: 'open',
@@ -872,11 +872,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) => setUkmForm({ ...ukmForm, kategori: e.target.value })}
                     className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none"
                   >
-                    <option value="Olahraga">Olahraga</option>
-                    <option value="Seni">Seni & Budaya</option>
-                    <option value="Penalaran">Penalaran & Keilmuan</option>
-                    <option value="Keagamaan">Keagamaan</option>
-                    <option value="Keterampilan">Keterampilan / Khusus</option>
+                    <option value="Olahraga & Bela Diri">Olahraga & Bela Diri</option>
+                    <option value="Seni & Budaya">Seni & Budaya</option>
+                    <option value="Penalaran & Keilmuan">Penalaran & Keilmuan</option>
+                    <option value="Kerohanian">Kerohanian</option>
+                    <option value="Kesejahteraan & Pengabdian">Kesejahteraan & Pengabdian</option>
                   </select>
                 </div>
               </div>
