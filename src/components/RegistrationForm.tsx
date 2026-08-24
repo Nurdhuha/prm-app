@@ -61,6 +61,16 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
       .catch((err) => console.error('Fetch PostgreSQL Fakultas Error:', err));
   }, []);
 
+  // Auto-clear selected UKM if it is closed
+  React.useEffect(() => {
+    if (draft.ukmId) {
+      const selected = ukmOptions.find((u) => u.id === draft.ukmId);
+      if (selected && (selected.status === 'closed' || selected.status === 'tutup')) {
+        setDraftValue((prev) => ({ ...prev, ukmId: '' }));
+      }
+    }
+  }, [ukmOptions, draft.ukmId]);
+
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -524,12 +534,6 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     <p className="text-[11px] sm:text-xs font-medium text-stone-700 line-clamp-2">
                       {ukm.deskripsi}
                     </p>
-
-                    {ukm.pembina && (
-                      <div className="mt-2 text-[10px] font-bold text-stone-600 flex items-center gap-1">
-                        <span>Pembina: {ukm.pembina}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               );
