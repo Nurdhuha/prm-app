@@ -383,7 +383,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <p className="text-xs sm:text-sm font-bold text-stone-800 mt-1">
             {isPengurus
               ? `Kelola & verifikasi mahasiswa pendaftar baru khusus untuk ${session?.managedUkmNama}.`
-              : 'Verifikasi pendaftaran mahasiswa, kelola akun pengurus, dan pantau kuota 65 UKM UNESA.'}
+              : `Verifikasi pendaftaran mahasiswa, kelola akun pengurus, dan pantau kuota ${LIST_UKM.length} UKM UNESA.`}
           </p>
         </div>
 
@@ -495,7 +495,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onChange={(e) => setFilterUkm(e.target.value)}
                   className="bg-white border-2 sm:border-3 border-[#1D1C1C] px-3 py-2 font-bold text-xs text-[#1D1C1C] rounded-xl shadow-[2px_2px_0px_#1D1C1C] cursor-pointer"
                 >
-                  <option value="ALL">Semua 65 UKM (Master View)</option>
+                  <option value="ALL">Semua {LIST_UKM.length} UKM (Master View)</option>
                   {LIST_UKM.map((ukm) => (
                     <option key={ukm.id} value={ukm.id}>
                       {ukm.nama}
@@ -624,7 +624,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="bg-[#FFF48D] border-2 border-[#1D1C1C] px-3 py-2 rounded-xl text-xs font-black uppercase shadow-[2px_2px_0px_#1D1C1C] text-center">
-              Total 65 Akun Pengurus UKM
+              Total {LIST_UKM.length} Akun Pengurus UKM
             </div>
           </div>
 
