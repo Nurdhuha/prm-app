@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GeminiIconLogo, IconKey, IconSparkles, IconCheck, IconX, IconInfo } from './NeoIcons';
+import { GeminiIconLogo, IconKey, IconSparkles, IconCheck, IconX, IconInfo, IconEye, IconEyeOff } from './NeoIcons';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,6 +15,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Forgot Password State
   const [forgotSent, setForgotSent] = useState(false);
@@ -259,14 +261,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
                   Lupa Password?
                 </button>
               </div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password akun PRM Anda"
-                className="w-full px-3 py-2.5 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#FFF48D] shadow-[2px_2px_0px_#1D1C1C]"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password akun PRM Anda"
+                  className="w-full px-3 py-2.5 pr-10 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#FFF48D] shadow-[2px_2px_0px_#1D1C1C]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-stone-600 hover:text-[#1D1C1C] transition-colors"
+                  title={showPassword ? 'Sembunyikan Password' : 'Lihat Password'}
+                >
+                  {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -311,14 +323,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
               <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
                 Buat Password Akun PRM
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimal 8 Karakter, Angka & Simbol"
-                className="w-full px-3 py-2 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#83F582] shadow-[2px_2px_0px_#1D1C1C]"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimal 8 Karakter, Angka & Simbol"
+                  className="w-full px-3 py-2 pr-10 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#83F582] shadow-[2px_2px_0px_#1D1C1C]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-stone-600 hover:text-[#1D1C1C] transition-colors"
+                  title={showPassword ? 'Sembunyikan Password' : 'Lihat Password'}
+                >
+                  {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                </button>
+              </div>
               {/* Password Indicator Badge */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 mt-1.5 text-[10px] font-bold">
                 <span className={`px-1.5 py-0.5 rounded border text-center ${hasMinLength(password) ? 'bg-emerald-100 text-emerald-800 border-emerald-400' : 'bg-stone-100 text-stone-500 border-stone-300'}`}>
@@ -337,14 +359,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
               <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
                 Konfirmasi Password Akun PRM
               </label>
-              <input
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Ulangi password akun PRM Anda"
-                className="w-full px-3 py-2 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#83F582] shadow-[2px_2px_0px_#1D1C1C]"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Ulangi password akun PRM Anda"
+                  className="w-full px-3 py-2 pr-10 bg-white border-2 sm:border-3 border-[#1D1C1C] rounded-xl text-xs sm:text-sm font-bold text-[#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#83F582] shadow-[2px_2px_0px_#1D1C1C]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-stone-600 hover:text-[#1D1C1C] transition-colors"
+                  title={showConfirmPassword ? 'Sembunyikan Password' : 'Lihat Password'}
+                >
+                  {showConfirmPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PendaftaranUKM, UserSession } from '@/types';
 import { LIST_UKM } from '@/data/mockData';
-import { IconSearch, IconExcel, IconCheck, IconX, IconAlert, IconShieldCheck, IconKey } from './NeoIcons';
+import { IconSearch, IconExcel, IconCheck, IconX, IconAlert, IconShieldCheck, IconKey, IconEye, IconEyeOff } from './NeoIcons';
 import * as XLSX from 'xlsx';
 
 interface OfficerAccount {
@@ -20,6 +20,7 @@ interface AdminDashboardProps {
   pendaftaranList: PendaftaranUKM[];
   onApprove: (id: string) => void;
   onReject: (id: string, reason: string) => void;
+  onRefreshData?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -27,11 +28,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   pendaftaranList,
   onApprove,
   onReject,
+  onRefreshData,
 }) => {
   const isPengurus = session?.role === 'pengurus' && session.managedUkmId;
   const isSuperadmin = session?.role === 'superadmin' || session?.email?.toLowerCase().includes('nurdhuha.23100');
 
-  const [activeSubTab, setActiveSubTab] = useState<'MONITORING' | 'OFFICERS'>('MONITORING');
+  const [activeSubTab, setActiveSubTab] = useState<'MONITORING' | 'OFFICERS' | 'UKM_MASTER'>('MONITORING');
 
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterUkm, setFilterUkm] = useState<string>(isPengurus && session?.managedUkmId ? session.managedUkmId : 'ALL');
@@ -44,8 +46,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editingOfficer, setEditingOfficer] = useState<OfficerAccount | null>(null);
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [isSavingOfficer, setIsSavingOfficer] = useState(false);
   const [officerSuccessMsg, setOfficerSuccessMsg] = useState('');
+
+  // Superadmin Master UKM Management State
+  const [ukmMasterList, setUkmMasterList] = useState<any[]>([]);
+  const [isLoadingUkms, setIsLoadingUkms] = useState(false);
+  const [ukmSearch, setUkmSearch] = useState('');
+  const [editingUkm, setEditingUkm] = useState<any | null>(null);
+  const [isNewUkm, setIsNewUkm] = useState(false);
+  const [ukmForm, setUkmForm] = useState({
+    id: '',
+    nama: '',
+    kategori: 'Olahraga',
+    deskripsi: '',
+    pembina: 'UNESA',
+    status: 'open',
+  });
+  const [isSavingUkm, setIsSavingUkm] = useState(false);
+  const [ukmSuccessMsg, setUkmSuccessMsg] = useState('');
+
+  // Fetch UKMs list from PostgreSQL Backend
+  const fetchUkmMasterList = async () => {
+    if (!isSuperadmin) return;
+    try {
+      setIsLoadingUkms(true);
+      const res = await fetch('/api/ukm');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setUkmMasterList(data.data);
+      }
+    } catch (e) {
+      console.error('Fetch UKM Master Error:', e);
+    } finally {
+      setIsLoadingUkms(false);
+    }
+  };
 
   // Lock filter to managed UKM if user is UKM officer
   useEffect(() => {
@@ -74,8 +111,100 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => {
     if (isSuperadmin) {
       fetchOfficersList();
+      fetchUkmMasterList();
     }
   }, [isSuperadmin]);
+
+  // UKM Master CRUD Handlers
+  const handleOpenNewUkmModal = () => {
+    setIsNewUkm(true);
+    setUkmForm({
+      id: `ukm-${(ukmMasterList.length > 0 ? ukmMasterList.length : LIST_UKM.length) + 1}`,
+      nama: '',
+      kategori: 'Olahraga',
+      deskripsi: '',
+      pembina: 'UNESA',
+      status: 'open',
+    });
+    setEditingUkm({});
+    setUkmSuccessMsg('');
+  };
+
+  const handleOpenEditUkmModal = (ukm: any) => {
+    setIsNewUkm(false);
+    setEditingUkm(ukm);
+    setUkmForm({
+      id: ukm.id,
+      nama: ukm.nama,
+      kategori: ukm.kategori,
+      deskripsi: ukm.deskripsi,
+      pembina: ukm.pembina || 'UNESA',
+      status: ukm.status || 'open',
+    });
+    setUkmSuccessMsg('');
+  };
+
+  const handleSaveUkm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ukmForm.nama.trim() || !ukmForm.kategori) {
+      alert('Nama dan Kategori UKM wajib diisi.');
+      return;
+    }
+
+    try {
+      setIsSavingUkm(true);
+      const method = isNewUkm ? 'POST' : 'PUT';
+      const res = await fetch('/api/ukm', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ukmForm),
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        alert(`Gagal menyimpan UKM: ${json.error}`);
+        return;
+      }
+
+      setUkmSuccessMsg(`UKM "${ukmForm.nama}" berhasil disimpan!`);
+      await fetchUkmMasterList();
+      await fetchOfficersList();
+      if (onRefreshData) onRefreshData();
+
+      setTimeout(() => {
+        setEditingUkm(null);
+        setUkmSuccessMsg('');
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat menyimpan data UKM.');
+    } finally {
+      setIsSavingUkm(false);
+    }
+  };
+
+  const handleDeleteUkm = async (ukmId: string, ukmNama: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus UKM "${ukmNama}"? Data pendaftaran UKM ini juga akan terhapus.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/ukm?id=${ukmId}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!json.success) {
+        alert(`Gagal menghapus UKM: ${json.error}`);
+        return;
+      }
+
+      alert(`UKM "${ukmNama}" berhasil dihapus.`);
+      await fetchUkmMasterList();
+      await fetchOfficersList();
+      if (onRefreshData) onRefreshData();
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat menghapus UKM.');
+    }
+  };
 
   // Reject Modal State
   const [rejectingItem, setRejectingItem] = useState<PendaftaranUKM | null>(null);
@@ -254,10 +383,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Superadmin Sub-Tab Switcher */}
       {isSuperadmin && (
-        <div className="flex items-center gap-2 p-1 bg-[#EFECE6] border-3 border-[#1D1C1C] rounded-2xl max-w-md shadow-[3px_3px_0px_#1D1C1C]">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1 bg-[#EFECE6] border-3 border-[#1D1C1C] rounded-2xl max-w-xl shadow-[3px_3px_0px_#1D1C1C]">
           <button
             onClick={() => setActiveSubTab('MONITORING')}
-            className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
               activeSubTab === 'MONITORING'
                 ? 'bg-[#FFF48D] text-[#1D1C1C] border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]'
                 : 'text-stone-700 hover:text-black'
@@ -268,13 +397,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={() => setActiveSubTab('OFFICERS')}
-            className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
               activeSubTab === 'OFFICERS'
                 ? 'bg-[#83F582] text-[#1D1C1C] border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]'
                 : 'text-stone-700 hover:text-black'
             }`}
           >
             🔑 Kelola Akun Pengurus ({LIST_UKM.length})
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('UKM_MASTER')}
+            className={`flex-1 py-2.5 px-3 rounded-xl font-black text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+              activeSubTab === 'UKM_MASTER'
+                ? 'bg-[#7AF7F2] text-[#1D1C1C] border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]'
+                : 'text-stone-700 hover:text-black'
+            }`}
+          >
+            🎪 Kelola Master UKM
           </button>
         </div>
       )}
@@ -539,6 +679,261 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
+      {/* SUB-TAB 3: KELOLA MASTER UKM (SUPERADMIN ONLY) */}
+      {activeSubTab === 'UKM_MASTER' && isSuperadmin && (
+        <div className="space-y-4">
+          <div className="brutalist-card p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-white via-[#7AF7F2]/20 to-[#FFF48D]/20">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={ukmSearch}
+                onChange={(e) => setUkmSearch(e.target.value)}
+                placeholder="Cari UKM, Kategori, atau Pembina..."
+                className="w-full bg-white border-2 sm:border-3 border-[#1D1C1C] pl-9 pr-3 py-2 font-bold text-xs sm:text-sm text-[#1D1C1C] rounded-xl shadow-[2px_2px_0px_#1D1C1C] focus:outline-none focus:ring-2 focus:ring-[#7AF7F2]"
+              />
+              <IconSearch className="w-4 h-4 text-stone-500 absolute left-3 top-2.5 sm:top-3" />
+            </div>
+
+            <button
+              onClick={handleOpenNewUkmModal}
+              className="px-4 py-2.5 bg-[#83F582] hover:bg-[#68e067] text-[#1D1C1C] font-black text-xs uppercase rounded-xl border-3 border-[#1D1C1C] shadow-[3px_3px_0px_#1D1C1C] active:translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              ➕ Tambah UKM Baru
+            </button>
+          </div>
+
+          <div className="brutalist-card overflow-hidden">
+            <div className="max-w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="bg-[#1D1C1C] text-white text-[11px] font-black uppercase tracking-wider">
+                    <th className="py-3 px-4">No</th>
+                    <th className="py-3 px-4">ID & Nama UKM</th>
+                    <th className="py-3 px-4">Kategori</th>
+                    <th className="py-3 px-4">Pembina</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-center">Aksi Manajemen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y-2 divide-[#1D1C1C] text-xs font-bold text-[#1D1C1C]">
+                  {isLoadingUkms ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-stone-500 font-bold">
+                        Memuat daftar master UKM dari PostgreSQL...
+                      </td>
+                    </tr>
+                  ) : (ukmMasterList.length > 0 ? ukmMasterList : LIST_UKM)
+                      .filter(
+                        (u) =>
+                          u.nama.toLowerCase().includes(ukmSearch.toLowerCase()) ||
+                          u.kategori.toLowerCase().includes(ukmSearch.toLowerCase()) ||
+                          u.id.toLowerCase().includes(ukmSearch.toLowerCase())
+                      )
+                      .length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-stone-500 font-bold">
+                        Tidak ada UKM yang sesuai dengan kata kunci.
+                      </td>
+                    </tr>
+                  ) : (
+                    (ukmMasterList.length > 0 ? ukmMasterList : LIST_UKM)
+                      .filter(
+                        (u) =>
+                          u.nama.toLowerCase().includes(ukmSearch.toLowerCase()) ||
+                          u.kategori.toLowerCase().includes(ukmSearch.toLowerCase()) ||
+                          u.id.toLowerCase().includes(ukmSearch.toLowerCase())
+                      )
+                      .map((ukm, idx) => (
+                        <tr key={ukm.id} className="hover:bg-[#FAF7F2] transition-colors">
+                          <td className="py-3 px-4 font-mono font-black">{idx + 1}</td>
+                          <td className="py-3 px-4">
+                            <p className="font-black uppercase text-stone-900">{ukm.nama}</p>
+                            <span className="font-mono text-[10px] text-stone-500 font-bold">
+                              ID: {ukm.id}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-block bg-[#FFF48D] border border-[#1D1C1C] px-2 py-0.5 rounded text-[10px] font-black uppercase text-[#1D1C1C]">
+                              {ukm.kategori}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-bold text-stone-700">
+                            {ukm.pembina || 'UNESA'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
+                                ukm.status === 'closed'
+                                  ? 'bg-red-100 text-red-800 border-red-400'
+                                  : 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                              }`}
+                            >
+                              {ukm.status === 'closed' ? '🔒 Tutup' : '🟢 Buka'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => handleOpenEditUkmModal(ukm)}
+                                className="px-2.5 py-1 bg-[#FFF48D] hover:bg-[#ffe945] text-[#1D1C1C] font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUkm(ukm.id, ukm.nama)}
+                                className="px-2.5 py-1 bg-[#FFD1D1] hover:bg-red-200 text-red-900 font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5"
+                              >
+                                🗑️ Hapus
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit UKM Modal (Superadmin Only) */}
+      {editingUkm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="bg-[#FAF7F2] border-4 border-[#1D1C1C] rounded-2xl max-w-lg w-full p-6 shadow-[8px_8px_0px_#1D1C1C] space-y-4 my-auto">
+            <div className="flex items-center justify-between pb-2 border-b-2 border-[#1D1C1C]">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎪</span>
+                <h3 className="font-black text-base uppercase text-[#1D1C1C]">
+                  {isNewUkm ? 'Tambah UKM Baru UNESA' : `Edit Master UKM — ${ukmForm.nama}`}
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditingUkm(null)}
+                className="p-1 text-stone-600 hover:text-black"
+              >
+                <IconX className="w-4 h-4" />
+              </button>
+            </div>
+
+            {ukmSuccessMsg && (
+              <div className="p-3 bg-[#83F582] border-2 border-[#1D1C1C] rounded-xl text-xs font-bold text-[#1D1C1C]">
+                ✓ {ukmSuccessMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveUkm} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                    ID UKM
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={!isNewUkm}
+                    value={ukmForm.id}
+                    onChange={(e) => setUkmForm({ ...ukmForm, id: e.target.value })}
+                    placeholder="ukm-66"
+                    className="w-full bg-stone-100 border-2 border-[#1D1C1C] p-2 font-mono font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none disabled:opacity-75"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                    Kategori UKM
+                  </label>
+                  <select
+                    value={ukmForm.kategori}
+                    onChange={(e) => setUkmForm({ ...ukmForm, kategori: e.target.value })}
+                    className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none"
+                  >
+                    <option value="Olahraga">Olahraga</option>
+                    <option value="Seni">Seni & Budaya</option>
+                    <option value="Penalaran">Penalaran & Keilmuan</option>
+                    <option value="Keagamaan">Keagamaan</option>
+                    <option value="Keterampilan">Keterampilan / Khusus</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                  Nama Resmi UKM
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={ukmForm.nama}
+                  onChange={(e) => setUkmForm({ ...ukmForm, nama: e.target.value })}
+                  placeholder="Contoh: UKM Futsal UNESA"
+                  className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none shadow-[1.5px_1.5px_0px_#1D1C1C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                  Deskripsi Singkat UKM
+                </label>
+                <textarea
+                  rows={3}
+                  value={ukmForm.deskripsi}
+                  onChange={(e) => setUkmForm({ ...ukmForm, deskripsi: e.target.value })}
+                  placeholder="Jelaskan profil dan kegiatan utama UKM..."
+                  className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none shadow-[1.5px_1.5px_0px_#1D1C1C]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                    Pembina UKM
+                  </label>
+                  <input
+                    type="text"
+                    value={ukmForm.pembina}
+                    onChange={(e) => setUkmForm({ ...ukmForm, pembina: e.target.value })}
+                    placeholder="Dosen / Pembina UNESA"
+                    className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
+                    Status Pendaftaran
+                  </label>
+                  <select
+                    value={ukmForm.status}
+                    onChange={(e) => setUkmForm({ ...ukmForm, status: e.target.value })}
+                    className="w-full bg-white border-2 border-[#1D1C1C] p-2 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none"
+                  >
+                    <option value="open">🟢 Terbuka (Open)</option>
+                    <option value="closed">🔒 Ditutup (Closed)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t-2 border-[#1D1C1C]">
+                <button
+                  type="button"
+                  onClick={() => setEditingUkm(null)}
+                  className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-black text-xs uppercase rounded-xl border-2 border-[#1D1C1C]"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingUkm}
+                  className="px-5 py-2 bg-[#83F582] hover:bg-[#68e067] text-[#1D1C1C] font-black text-xs uppercase rounded-xl border-2 border-[#1D1C1C] shadow-[3px_3px_0px_#1D1C1C] active:translate-y-0.5 cursor-pointer"
+                >
+                  {isSavingUkm ? 'Menyimpan...' : isNewUkm ? 'Tambah UKM Baru' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Edit Officer Account & Password Modal (Superadmin Only) */}
       {editingOfficer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -583,13 +978,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <label className="block text-xs font-black uppercase text-[#1D1C1C] mb-1">
                   Reset Password Pengurus Baru (Opsional)
                 </label>
-                <input
-                  type="password"
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  placeholder="Isi jika ingin mengganti password baru"
-                  className="w-full bg-white border-3 border-[#1D1C1C] p-2.5 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none shadow-[2px_2px_0px_#1D1C1C]"
-                />
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    placeholder="Isi jika ingin mengganti password baru"
+                    className="w-full bg-white border-3 border-[#1D1C1C] p-2.5 pr-10 font-bold text-xs text-[#1D1C1C] rounded-xl focus:outline-none shadow-[2px_2px_0px_#1D1C1C]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-stone-600 hover:text-[#1D1C1C] transition-colors"
+                    title={showEditPassword ? 'Sembunyikan Password' : 'Lihat Password'}
+                  >
+                    {showEditPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                  </button>
+                </div>
                 <p className="text-[10px] font-bold text-stone-500 mt-1">
                   Biarkan kosong jika tidak ingin mengubah password saat ini.
                 </p>
