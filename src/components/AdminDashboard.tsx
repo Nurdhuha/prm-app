@@ -337,7 +337,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         return;
       }
 
-      setOfficerSuccessMsg(`Akun & password untuk ${editingOfficer.ukmNama} berhasil diperbarui!`);
+      if (editPassword.trim()) {
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'OFFICER_RESET',
+              email: editEmail.trim().toLowerCase(),
+              password: editPassword.trim(),
+            }),
+          });
+        } catch (e) {
+          console.error('Email send error:', e);
+        }
+      }
+
+      setOfficerSuccessMsg(`Akun & password untuk ${editingOfficer.ukmNama} berhasil diperbarui dan notifikasi dikirimkan ke email pengurus!`);
       await fetchOfficersList();
       setTimeout(() => {
         setEditingOfficer(null);

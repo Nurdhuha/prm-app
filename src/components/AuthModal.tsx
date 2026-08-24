@@ -40,7 +40,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
   const isStrictPasswordValid = (pass: string) =>
     hasMinLength(pass) && hasNumber(pass) && hasSymbol(pass);
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -62,10 +62,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      // Trigger automatic email notification
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'WELCOME',
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
+    } catch (e) {
+      console.error('Email send error:', e);
+    } finally {
       setIsLoading(false);
       onSuccessLogin(email.trim().toLowerCase());
-    }, 600);
+    }
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -88,10 +101,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
     setTimeout(() => {
       setIsLoading(false);
       onSuccessLogin(email.trim().toLowerCase());
-    }, 600);
+    }, 400);
   };
 
-  const handleSendResetEmail = (e: React.FormEvent) => {
+  const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -105,11 +118,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
     setTimeout(() => {
       setIsLoading(false);
       setForgotSent(true);
-      setSuccessMsg(`Kode reset 6-digit telah dikirim ke ${email}. Silakan cek inbox email Anda.`);
-    }, 600);
+      setSuccessMsg(`Kode reset verifikasi telah dikirim ke ${email}. Silakan cek inbox email Anda.`);
+    }, 400);
   };
 
-  const handleResetPasswordSubmit = (e: React.FormEvent) => {
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -119,18 +132,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
     }
 
     if (!isStrictPasswordValid(newPassword)) {
-      setErrorMsg('Password baru wajib mengandung minimal 8 Karakter, Angka & Simbol.');
+      setErrorMsg('Password baru belum memenuhi syarat (Min 8 Karakter, Angka & Simbol).');
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RESET_PASSWORD',
+          email: email.trim().toLowerCase(),
+          password: newPassword,
+        }),
+      });
+    } catch (e) {
+      console.error('Email send error:', e);
+    } finally {
       setIsLoading(false);
-      alert('Password akun PRM berhasil diperbarui! Silakan login.');
-      setActiveTab('LOGIN');
-      setPassword('');
-      setForgotSent(false);
-    }, 600);
+      setSuccessMsg('Password akun PRM Anda berhasil diperbarui dan notifikasi dikirimkan ke email Anda!');
+      setTimeout(() => {
+        setActiveTab('LOGIN');
+        setForgotSent(false);
+        setSuccessMsg('');
+      }, 1200);
+    }
   };
 
   return (
