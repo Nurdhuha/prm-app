@@ -9,7 +9,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) => {
-  const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER' | 'FORGOT'>('LOGIN');
+  const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER' | 'FORGOT'>('REGISTER');
 
   // Form State
   const [email, setEmail] = useState('');
@@ -160,25 +160,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
           </div>
         </div>
 
-        {/* Navigation Tabs (Login PRM vs Buat Akun PRM) */}
+        {/* Navigation Tabs (Buat Akun PRM vs Masuk Akun PRM) */}
         {activeTab !== 'FORGOT' && (
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#EFECE6] border-2 sm:border-3 border-[#1D1C1C] rounded-xl mb-4 sm:mb-5">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('LOGIN');
-                setErrorMsg('');
-                setSuccessMsg('');
-              }}
-              className={`py-2 rounded-lg font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'LOGIN'
-                  ? 'bg-[#FFF48D] text-[#1D1C1C] border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]'
-                  : 'text-stone-600 hover:text-[#1D1C1C]'
-              }`}
-            >
-              <IconKey className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Masuk Akun PRM
-            </button>
-
             <button
               type="button"
               onClick={() => {
@@ -193,6 +177,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
               }`}
             >
               <IconSparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Buat Akun PRM
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('LOGIN');
+                setErrorMsg('');
+                setSuccessMsg('');
+              }}
+              className={`py-2 rounded-lg font-black text-[11px] sm:text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                activeTab === 'LOGIN'
+                  ? 'bg-[#FFF48D] text-[#1D1C1C] border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]'
+                  : 'text-stone-600 hover:text-[#1D1C1C]'
+              }`}
+            >
+              <IconKey className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Masuk Akun PRM
             </button>
           </div>
         )}

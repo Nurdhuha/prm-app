@@ -4,11 +4,13 @@ interface IconProps {
   className?: string;
 }
 
-// Gemini Generated Image Asset Components
+// Gemini Generated Image Asset Components (Optimized for 0ms Eager Loading)
 export const GeminiIconLogo: React.FC<IconProps> = ({ className = 'w-9 h-9' }) => (
   <img
-    src="/icons/logo.jpg"
+    src="/icons/prm-logo.jpg"
     alt="Logo PRM"
+    loading="eager"
+    decoding="async"
     className={`${className} object-cover rounded-xl border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]`}
   />
 );
@@ -17,6 +19,8 @@ export const GeminiIconPhone: React.FC<IconProps> = ({ className = 'w-5 h-5' }) 
   <img
     src="/icons/phone.jpg"
     alt="OTP Phone"
+    loading="eager"
+    decoding="async"
     className={`${className} object-cover rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C]`}
   />
 );
@@ -25,6 +29,8 @@ export const GeminiIconSearch: React.FC<IconProps> = ({ className = 'w-5 h-5' })
   <img
     src="/icons/search.jpg"
     alt="Search"
+    loading="eager"
+    decoding="async"
     className={`${className} object-cover rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C]`}
   />
 );
@@ -33,6 +39,8 @@ export const GeminiIconApproval: React.FC<IconProps> = ({ className = 'w-5 h-5' 
   <img
     src="/icons/approval.jpg"
     alt="Approval"
+    loading="eager"
+    decoding="async"
     className={`${className} object-cover rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C]`}
   />
 );
@@ -41,6 +49,8 @@ export const GeminiIconExcel: React.FC<IconProps> = ({ className = 'w-5 h-5' }) 
   <img
     src="/icons/excel.jpg"
     alt="Excel Export"
+    loading="eager"
+    decoding="async"
     className={`${className} object-cover rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C]`}
   />
 );
