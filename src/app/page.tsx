@@ -9,8 +9,6 @@ import { RegistrationForm } from '@/components/RegistrationForm';
 import { MahasiswaDashboard } from '@/components/MahasiswaDashboard';
 import { IconBook, IconSparkles } from '@/components/NeoIcons';
 
-export const dynamic = 'force-dynamic';
-
 export default function Home() {
   // Persistent User Session State
   const [session, setSession] = useState<UserSession>({

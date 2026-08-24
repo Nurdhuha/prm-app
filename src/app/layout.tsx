@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
+      <head>
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+      </head>
       <body className="antialiased selection:bg-[#FFF48D] selection:text-[#1D1C1C]">
         {children}
       </body>

@@ -7,8 +7,6 @@ import { Navbar } from '@/components/Navbar';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { AuthModal } from '@/components/AuthModal';
 
-export const dynamic = 'force-dynamic';
-
 export default function PengurusPage() {
   const [session, setSession] = useState<UserSession>({
     isLoggedIn: false,
