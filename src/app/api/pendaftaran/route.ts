@@ -161,10 +161,43 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, error: 'ID dan Aksi wajib diisi.' }, { status: 400 });
     }
 
+    // Auto-delete registration & free up NIM/email when REJECTED or CANCELLED
+    if (action === 'REJECT' || action === 'CANCEL') {
+      const findRes = await db.query(
+        `SELECT p.id, p.mahasiswa_id, m.user_id, m.email, m.nim 
+         FROM pendaftaran_ukm p 
+         JOIN mahasiswa m ON p.mahasiswa_id = m.id 
+         WHERE p.id = $1`,
+        [id]
+      );
+
+      if (findRes.rows.length > 0) {
+        const { mahasiswa_id, user_id } = findRes.rows[0];
+
+        // Delete pendaftaran record
+        await db.query(`DELETE FROM pendaftaran_ukm WHERE id = $1`, [id]);
+
+        // Delete mahasiswa profile record to free up NIM completely
+        await db.query(`DELETE FROM mahasiswa WHERE id = $1`, [mahasiswa_id]);
+
+        // Delete user record if present to free up email completely
+        if (user_id) {
+          await db.query(`DELETE FROM users WHERE id = $1`, [user_id]);
+        }
+      } else {
+        await db.query(`DELETE FROM pendaftaran_ukm WHERE id = $1`, [id]);
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: action === 'REJECT'
+          ? 'Pendaftaran ditolak dan otomatis dihapus dari database. NIM mahasiswa kini dapat mendaftar kembali.'
+          : 'Pendaftaran berhasil dibatalkan dan dihapus.',
+      });
+    }
+
     let status = 'PENDING';
     if (action === 'APPROVE') status = 'ACCEPTED';
-    if (action === 'REJECT') status = 'REJECTED';
-    if (action === 'CANCEL') status = 'CANCELLED';
 
     const res = await db.query(
       `UPDATE pendaftaran_ukm 
