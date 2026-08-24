@@ -252,3 +252,61 @@ export const IconEyeOff: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
     />
   </svg>
 );
+
+export const IconPlus: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 5v14M5 12h14" stroke="#1D1C1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export const IconEdit: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+      stroke="#1D1C1C"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const IconTrash: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"
+      stroke="#1D1C1C"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const IconGrid: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#7AF7F2" stroke="#1D1C1C" strokeWidth="2.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#FFF48D" stroke="#1D1C1C" strokeWidth="2.5" />
+    <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#83F582" stroke="#1D1C1C" strokeWidth="2.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#FFB88C" stroke="#1D1C1C" strokeWidth="2.5" />
+  </svg>
+);
+
+export const IconChartLine: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M18 20V10M12 20V4M6 20v-6"
+      stroke="#1D1C1C"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const IconLock: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="11" width="14" height="10" rx="2" fill="#FFD1D1" stroke="#1D1C1C" strokeWidth="2.5" />
+    <path d="M8 11V7a4 4 0 018 0v4" stroke="#1D1C1C" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);

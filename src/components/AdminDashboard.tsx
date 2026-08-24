@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PendaftaranUKM, UserSession } from '@/types';
 import { LIST_UKM } from '@/data/mockData';
-import { IconSearch, IconExcel, IconCheck, IconX, IconAlert, IconShieldCheck, IconKey, IconEye, IconEyeOff } from './NeoIcons';
+import { IconSearch, IconExcel, IconCheck, IconX, IconAlert, IconShieldCheck, IconKey, IconEye, IconEyeOff, IconPlus, IconEdit, IconTrash, IconGrid, IconChartLine, IconLock } from './NeoIcons';
 import * as XLSX from 'xlsx';
 
 interface OfficerAccount {
@@ -392,7 +392,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 : 'text-stone-700 hover:text-black'
             }`}
           >
-            📊 Monitoring Pendaftaran
+            <IconChartLine className="w-4 h-4" /> Monitoring Pendaftaran
           </button>
 
           <button
@@ -403,7 +403,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 : 'text-stone-700 hover:text-black'
             }`}
           >
-            🔑 Kelola Akun Pengurus ({LIST_UKM.length})
+            <IconKey className="w-4 h-4" /> Kelola Akun Pengurus ({LIST_UKM.length})
           </button>
 
           <button
@@ -414,7 +414,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 : 'text-stone-700 hover:text-black'
             }`}
           >
-            🎪 Kelola Master UKM
+            <IconGrid className="w-4 h-4" /> Kelola Master UKM
           </button>
         </div>
       )}
@@ -698,7 +698,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={handleOpenNewUkmModal}
               className="px-4 py-2.5 bg-[#83F582] hover:bg-[#68e067] text-[#1D1C1C] font-black text-xs uppercase rounded-xl border-3 border-[#1D1C1C] shadow-[3px_3px_0px_#1D1C1C] active:translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
             >
-              ➕ Tambah UKM Baru
+              <IconPlus className="w-4 h-4" /> Tambah UKM Baru
             </button>
           </div>
 
@@ -762,28 +762,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span
-                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
                                 ukm.status === 'closed'
                                   ? 'bg-red-100 text-red-800 border-red-400'
                                   : 'bg-emerald-100 text-emerald-800 border-emerald-400'
                               }`}
                             >
-                              {ukm.status === 'closed' ? '🔒 Tutup' : '🟢 Buka'}
+                              {ukm.status === 'closed' ? (
+                                <>
+                                  <IconLock className="w-3 h-3 text-red-700 shrink-0" /> Tutup
+                                </>
+                              ) : (
+                                <>
+                                  <IconCheck className="w-3 h-3 text-emerald-700 shrink-0" /> Buka
+                                </>
+                              )}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               <button
                                 onClick={() => handleOpenEditUkmModal(ukm)}
-                                className="px-2.5 py-1 bg-[#FFF48D] hover:bg-[#ffe945] text-[#1D1C1C] font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5"
+                                className="px-2.5 py-1 bg-[#FFF48D] hover:bg-[#ffe945] text-[#1D1C1C] font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5 flex items-center gap-1"
                               >
-                                ✏️ Edit
+                                <IconEdit className="w-3.5 h-3.5" /> Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteUkm(ukm.id, ukm.nama)}
-                                className="px-2.5 py-1 bg-[#FFD1D1] hover:bg-red-200 text-red-900 font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5"
+                                className="px-2.5 py-1 bg-[#FFD1D1] hover:bg-red-200 text-red-900 font-black text-[11px] uppercase rounded-lg border-2 border-[#1D1C1C] shadow-[1.5px_1.5px_0px_#1D1C1C] active:translate-y-0.5 flex items-center gap-1"
                               >
-                                🗑️ Hapus
+                                <IconTrash className="w-3.5 h-3.5" /> Hapus
                               </button>
                             </div>
                           </td>
@@ -803,7 +811,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-[#FAF7F2] border-4 border-[#1D1C1C] rounded-2xl max-w-lg w-full p-6 shadow-[8px_8px_0px_#1D1C1C] space-y-4 my-auto">
             <div className="flex items-center justify-between pb-2 border-b-2 border-[#1D1C1C]">
               <div className="flex items-center gap-2">
-                <span className="text-xl">🎪</span>
+                <IconGrid className="w-5 h-5 text-[#1D1C1C]" />
                 <h3 className="font-black text-base uppercase text-[#1D1C1C]">
                   {isNewUkm ? 'Tambah UKM Baru UNESA' : `Edit Master UKM — ${ukmForm.nama}`}
                 </h3>

@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   description: 'Sistem Informasi Pendaftaran dan Monitoring Unit Kegiatan Mahasiswa (UKM) Pekan Raya Mahasiswa Universitas Negeri Surabaya',
   icons: {
     icon: [
-      { url: '/icons/prm-logo.jpg?v=20260824' },
-      { url: '/favicon.ico?v=20260824' },
+      { url: '/PRM-fav.png?v=20260824_v4', type: 'image/png' },
+      { url: '/favicon.ico?v=20260824_v4' },
     ],
-    shortcut: '/icons/prm-logo.jpg?v=20260824',
-    apple: '/apple-icon.png?v=20260824',
+    shortcut: '/PRM-fav.png?v=20260824_v4',
+    apple: '/PRM-fav.png?v=20260824_v4',
   },
 };
 
