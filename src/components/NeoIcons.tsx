@@ -7,8 +7,8 @@ interface IconProps {
 // Gemini Generated Image Asset Components (Optimized for 0ms Eager Loading)
 export const GeminiIconLogo: React.FC<IconProps> = ({ className = 'w-9 h-9' }) => (
   <img
-    src="/icons/prm-logo.jpg"
-    alt="Logo PRM"
+    src="/icons/logo.jpg"
+    alt="Logo UNESA Neo Brutalism"
     loading="eager"
     decoding="async"
     className={`${className} object-cover rounded-xl border-2 border-[#1D1C1C] shadow-[2px_2px_0px_#1D1C1C]`}
