@@ -195,20 +195,20 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const mobileSlicedUkms = showAllMobileUkms ? filteredUkms : filteredUkms.slice(0, 10);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 overflow-x-hidden">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
       {/* Header Banner */}
-      <div className="brutalist-card p-4 sm:p-6 bg-gradient-to-r from-[#83F582] via-[#FFF48D] to-[#FFB88C] relative overflow-hidden">
+      <div className="brutalist-card p-4 sm:p-6 bg-gradient-to-r from-[#83F582] via-[#FFF48D] to-[#FFB88C] relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#1D1C1C] text-[#FFF48D] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-black uppercase transform -rotate-2 border border-[#1D1C1C]">
+              <span className="bg-[#1D1C1C] text-[#FFF48D] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-black uppercase border border-[#1D1C1C]">
                 Langkah 2 dari 2
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase text-[#1D1C1C] tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase text-[#1D1C1C] tracking-tight leading-tight break-words">
               Formulir Pendaftaran UKM
             </h2>
-            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-800 mt-1">
+            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-800 mt-1 leading-normal">
               Lengkapi biodata mahasiswa dan nomor WhatsApp aktif Anda untuk mengajukan pendaftaran UKM.
             </p>
           </div>
@@ -247,11 +247,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
       )}
 
       {/* Main Registration Form */}
-      <form onSubmit={handleSubmit} className="brutalist-card p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+      <form onSubmit={handleSubmit} className="brutalist-card p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 w-full">
         {/* Section 1-5: Biodata Mahasiswa */}
-        <div>
-          <h3 className="font-black text-sm sm:text-base uppercase text-[#1D1C1C] mb-3 sm:mb-4 pb-2 border-b-3 border-[#1D1C1C] flex items-center gap-2">
-            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#1D1C1C] rounded-full"></span> Data Diri & Kontak Mahasiswa
+        <div className="w-full">
+          <h3 className="font-black text-sm sm:text-base uppercase text-[#1D1C1C] mb-3 sm:mb-4 pb-2 border-b-3 border-[#1D1C1C] flex items-center gap-2 break-words">
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#1D1C1C] rounded-full shrink-0"></span> Data Diri & Kontak Mahasiswa
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
