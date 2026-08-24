@@ -18,9 +18,11 @@ export async function GET() {
         m.fakultas,
         m.prodi,
         m.no_hp as "noHp",
-        m.email
+        m.email as "mhsEmail",
+        u.email as "userEmail"
       FROM pendaftaran_ukm p
       JOIN mahasiswa m ON p.mahasiswa_id = m.id
+      LEFT JOIN users u ON m.user_id = u.id
       ORDER BY p.created_at DESC
     `;
 
@@ -40,7 +42,8 @@ export async function GET() {
         fakultas: r.fakultas,
         prodi: r.prodi,
         noHp: r.noHp,
-        email: r.email,
+        email: r.mhsEmail || r.userEmail || '',
+        userEmail: r.userEmail || r.mhsEmail || '',
       },
     }));
 

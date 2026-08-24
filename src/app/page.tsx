@@ -68,12 +68,20 @@ export default function Home() {
   // Find active registration for current logged-in UNESA email
   const currentRegistration =
     session.isLoggedIn && session.email
-      ? pendaftaranList.find(
-          (p) =>
-            p.mahasiswa.email?.toLowerCase() === session.email.toLowerCase() &&
-            p.status !== 'CANCELLED'
-        ) || null
+      ? pendaftaranList.find((p) => {
+          const sessEmail = session.email.toLowerCase().trim();
+          const mhsEmail = (p.mahasiswa.email || '').toLowerCase().trim();
+          const userEmail = ((p.mahasiswa as any).userEmail || '').toLowerCase().trim();
+          return (mhsEmail === sessEmail || userEmail === sessEmail) && p.status !== 'CANCELLED';
+        }) || null
       : null;
+
+  // Auto-redirect to STATUS tab if student already has active registration
+  useEffect(() => {
+    if (session.isLoggedIn && currentRegistration) {
+      setActiveTab('STATUS');
+    }
+  }, [session.isLoggedIn, currentRegistration?.id]);
 
   const [isJustLoggedIn, setIsJustLoggedIn] = useState(false);
 
@@ -97,9 +105,12 @@ export default function Home() {
       console.error('Save session error:', e);
     }
 
-    const existing = pendaftaranList.find(
-      (p) => p.mahasiswa.email?.toLowerCase() === email.toLowerCase() && p.status !== 'CANCELLED'
-    );
+    const sessEmail = email.toLowerCase().trim();
+    const existing = pendaftaranList.find((p) => {
+      const mhsEmail = (p.mahasiswa.email || '').toLowerCase().trim();
+      const userEmail = ((p.mahasiswa as any).userEmail || '').toLowerCase().trim();
+      return (mhsEmail === sessEmail || userEmail === sessEmail) && p.status !== 'CANCELLED';
+    });
 
     if (existing) {
       setActiveTab('STATUS');
