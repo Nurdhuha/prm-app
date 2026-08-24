@@ -12,6 +12,7 @@ interface OfficerAccount {
   ukmNama: string;
   kategori: string;
   email: string;
+  password?: string;
   hasCustomPassword?: boolean;
 }
 
@@ -49,6 +50,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [isSavingOfficer, setIsSavingOfficer] = useState(false);
   const [officerSuccessMsg, setOfficerSuccessMsg] = useState('');
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+
+  const togglePasswordVisibility = (id: string) => {
+    setVisiblePasswords((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Superadmin Master UKM Management State
   const [ukmMasterList, setUkmMasterList] = useState<any[]>([]);
@@ -636,7 +642,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <th className="py-3 px-4">No</th>
                     <th className="py-3 px-4">Nama UKM & Kategori</th>
                     <th className="py-3 px-4">Email Login Pengurus</th>
-                    <th className="py-3 px-4 text-center">Status Password</th>
+                    <th className="py-3 px-4 text-center">Password Pengurus</th>
                     <th className="py-3 px-4 text-center">Aksi Manajemen</th>
                   </tr>
                 </thead>
@@ -667,13 +673,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           {off.email}
                         </td>
                         <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5 font-mono">
+                            <span className="bg-stone-100 border border-[#1D1C1C] px-2.5 py-1 rounded-lg text-xs font-bold text-[#1D1C1C] shadow-[1px_1px_0px_#1D1C1C]">
+                              {visiblePasswords[off.id] ? (off.password || 'Prm2026!#') : '••••••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => togglePasswordVisibility(off.id)}
+                              className="p-1.5 bg-[#FFF48D] hover:bg-[#ffe945] rounded-lg border border-[#1D1C1C] shadow-[1px_1px_0px_#1D1C1C] text-[#1D1C1C] cursor-pointer"
+                              title={visiblePasswords[off.id] ? 'Sembunyikan Password' : 'Lihat Password'}
+                            >
+                              {visiblePasswords[off.id] ? <IconEyeOff className="w-3.5 h-3.5" /> : <IconEye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
                           {off.hasCustomPassword ? (
-                            <span className="bg-[#83F582] border border-[#1D1C1C] px-2 py-0.5 rounded text-[10px] font-black text-[#1D1C1C]">
-                              ✓ Password Kustom (Diset)
+                            <span className="inline-block mt-1 bg-[#83F582] border border-[#1D1C1C] px-1.5 py-0.2 rounded text-[9px] font-black text-[#1D1C1C]">
+                              ✓ Password Kustom
                             </span>
                           ) : (
-                            <span className="bg-stone-100 border border-stone-300 text-stone-500 px-2 py-0.5 rounded text-[10px]">
-                              Password Default
+                            <span className="inline-block mt-1 bg-stone-100 border border-stone-300 text-stone-500 px-1.5 py-0.2 rounded text-[9px]">
+                              Default
                             </span>
                           )}
                         </td>

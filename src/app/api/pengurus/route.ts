@@ -5,19 +5,23 @@ import { LIST_UKM } from '@/data/mockData';
 // GET /api/pengurus - Get all UKM officer accounts
 export async function GET() {
   try {
-    const res = await db.query('SELECT id, email, ukm_id, created_at FROM pengurus_ukm ORDER BY ukm_id ASC');
+    const res = await db.query('SELECT id, email, ukm_id, password_hash, created_at FROM pengurus_ukm ORDER BY ukm_id ASC');
     
-    // Map with UKM catalog to ensure all 65 UKMs are listed
+    // Map with UKM catalog to ensure all 81 UKMs are listed
     const officersMap = new Map(res.rows.map((row) => [row.ukm_id, row]));
 
     const result = LIST_UKM.map((ukm) => {
       const dbOfficer = officersMap.get(ukm.id);
+      const slug = ukm.nama.replace(/^UKM\s+/i, '').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+      const defaultPassword = `Prm${slug}2026!#`;
+
       return {
         id: dbOfficer?.id || `officer-${ukm.id}`,
         ukmId: ukm.id,
         ukmNama: ukm.nama,
         kategori: ukm.kategori,
         email: dbOfficer?.email || `pengurus.${ukm.id}@unesa.ac.id`,
+        password: dbOfficer?.password_hash || defaultPassword,
         hasCustomPassword: Boolean(dbOfficer?.password_hash),
         updatedAt: dbOfficer?.created_at || new Date().toISOString(),
       };
