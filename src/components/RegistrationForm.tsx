@@ -396,7 +396,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   ) : (
                     <>
                       <IconX className="w-3.5 h-3.5 text-amber-700 shrink-0 inline mr-1" />
-                      Masukkan nomor WhatsApp aktif diawali 08 / 628 (Min 10 Digit)
+                      Nomor WhatsApp tidak valid
                     </>
                   )}
                 </p>
