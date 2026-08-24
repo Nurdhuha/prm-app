@@ -67,22 +67,41 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   // 5 Clear Standard Categories
   const categories = [
     'ALL',
-    'Olahraga & Bela Diri',
+    'Olahraga',
     'Seni & Budaya',
     'Penalaran & Keilmuan',
     'Kerohanian',
-    'Kepemimpinan & Pengabdian',
+    'Kesejahteraan & Pengabdian',
   ];
 
   // Filtered UKM list for search & category
   const filteredUkms = ukmOptions.filter((ukm) => {
-    const matchCategory = selectedKategori === 'ALL' || ukm.kategori === selectedKategori;
+    const ukmKat = (ukm.kategori || '').toLowerCase();
+    const selKat = selectedKategori.toLowerCase();
+
+    let matchCategory = selectedKategori === 'ALL';
+    if (!matchCategory) {
+      if (selKat.includes('olahraga')) {
+        matchCategory = ukmKat.includes('olahraga');
+      } else if (selKat.includes('seni')) {
+        matchCategory = ukmKat.includes('seni') || ukmKat.includes('budaya');
+      } else if (selKat.includes('penalaran')) {
+        matchCategory = ukmKat.includes('penalaran') || ukmKat.includes('ilmiah');
+      } else if (selKat.includes('kerohanian')) {
+        matchCategory = ukmKat.includes('kerohanian') || ukmKat.includes('agama');
+      } else if (selKat.includes('kesejahteraan') || selKat.includes('pengabdian') || selKat.includes('kepemimpinan')) {
+        matchCategory = ukmKat.includes('kesejahteraan') || ukmKat.includes('pengabdian') || ukmKat.includes('kepemimpinan');
+      } else {
+        matchCategory = ukmKat.includes(selKat);
+      }
+    }
+
     const q = ukmSearch.toLowerCase().trim();
     const matchSearch =
       !q ||
       ukm.nama.toLowerCase().includes(q) ||
       ukm.deskripsi.toLowerCase().includes(q) ||
-      ukm.kategori.toLowerCase().includes(q);
+      (ukm.kategori || '').toLowerCase().includes(q);
 
     return matchCategory && matchSearch;
   });
