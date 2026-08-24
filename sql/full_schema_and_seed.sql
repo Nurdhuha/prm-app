@@ -44,16 +44,7 @@ CREATE TABLE IF NOT EXISTS mahasiswa (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. TABEL PENGURUS UKM (Scoped Isolation per UKM)
-CREATE TABLE IF NOT EXISTS pengurus_ukm (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    ukm_id VARCHAR(50) REFERENCES ukm(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 6. TABEL UKM (Katalog 65 UKM Resmi UNESA - 5 Kategori Jelas)
+-- 5. TABEL UKM (Katalog 65 UKM Resmi UNESA - 5 Kategori Jelas)
 CREATE TABLE IF NOT EXISTS ukm (
     id VARCHAR(50) PRIMARY KEY,
     nama VARCHAR(255) NOT NULL,
@@ -62,6 +53,15 @@ CREATE TABLE IF NOT EXISTS ukm (
     logo VARCHAR(50) DEFAULT 'UKM',
     pembina VARCHAR(255) DEFAULT 'UNESA',
     status VARCHAR(20) DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. TABEL PENGURUS UKM (Scoped Isolation per UKM)
+CREATE TABLE IF NOT EXISTS pengurus_ukm (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    ukm_id VARCHAR(50) REFERENCES ukm(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
