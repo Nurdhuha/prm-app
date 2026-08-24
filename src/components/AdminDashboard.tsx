@@ -357,8 +357,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="brutalist-card p-4 sm:p-6 bg-gradient-to-r from-[#7AF7F2] via-[#FFF48D] to-[#83F582] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#1D1C1C] text-[#7AF7F2] px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider">
-              {isPengurus ? `DEDICATED OFFICER: ${session?.managedUkmNama}` : isSuperadmin ? '⚡ MASTER SUPERADMIN CONTROL' : 'DASHBOARD PENGURUS'}
+            <span className="bg-[#1D1C1C] text-[#7AF7F2] px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1">
+              {isPengurus ? `DEDICATED OFFICER: ${session?.managedUkmNama}` : isSuperadmin ? 'MASTER SUPERADMIN CONTROL' : 'DASHBOARD PENGURUS'}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black uppercase text-[#1D1C1C] tracking-tight leading-tight">

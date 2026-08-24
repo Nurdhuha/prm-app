@@ -69,8 +69,8 @@ export const Navbar: React.FC<NavbarProps> = ({ session, onLogout }) => {
                   </span>
 
                   {isSuperadmin && (
-                    <span className="bg-[#1D1C1C] text-[#FFF48D] text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.5 rounded shrink-0">
-                      ⚡
+                    <span className="bg-[#1D1C1C] text-[#FFF48D] text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.5 rounded shrink-0 flex items-center gap-0.5">
+                      <IconShieldCheck className="w-3 h-3 text-[#FFF48D]" />
                     </span>
                   )}
                 </button>
@@ -94,8 +94,8 @@ export const Navbar: React.FC<NavbarProps> = ({ session, onLogout }) => {
                       <div className="flex items-center justify-between">
                         <p className="text-[10px] text-stone-500 font-extrabold uppercase">Email UNESA Terhubung</p>
                         {isSuperadmin && (
-                          <span className="bg-[#FFF48D] border border-[#1D1C1C] text-[9px] font-black uppercase px-1.5 py-0.5 rounded">
-                            ⚡ SUPERADMIN
+                          <span className="bg-[#FFF48D] border border-[#1D1C1C] text-[9px] font-black uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <IconShieldCheck className="w-3 h-3 text-[#1D1C1C]" /> SUPERADMIN
                           </span>
                         )}
                       </div>

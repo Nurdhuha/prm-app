@@ -238,7 +238,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
                       Format Email UNESA Valid
                     </>
                   ) : (
-                    '⚠️ Format Email UNESA tidak valid'
+                    <>
+                      <IconX className="w-3.5 h-3.5 text-amber-700 shrink-0 inline mr-1" />
+                      Format Email UNESA tidak valid
+                    </>
                   )}
                 </p>
               )}
@@ -313,7 +316,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccessLogin }) 
                       Format Email UNESA Valid
                     </>
                   ) : (
-                    '⚠️ Format Email UNESA tidak valid'
+                    <>
+                      <IconX className="w-3.5 h-3.5 text-amber-700 shrink-0 inline mr-1" />
+                      Format Email UNESA tidak valid
+                    </>
                   )}
                 </p>
               )}

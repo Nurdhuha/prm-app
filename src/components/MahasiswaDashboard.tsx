@@ -19,8 +19,8 @@ export const MahasiswaDashboard: React.FC<MahasiswaDashboardProps> = ({
   if (!registration) {
     return (
       <div className="w-full max-w-3xl mx-auto text-center brutalist-card p-10 bg-white space-y-4">
-        <div className="w-16 h-16 bg-[#FFF48D] border-3 border-[#1D1C1C] rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0px_#1D1C1C] text-3xl">
-          📋
+        <div className="w-16 h-16 bg-[#FFF48D] border-3 border-[#1D1C1C] rounded-2xl flex items-center justify-center mx-auto shadow-[4px_4px_0px_#1D1C1C]">
+          <IconBook className="w-8 h-8 text-[#1D1C1C]" />
         </div>
         <h2 className="font-black text-2xl uppercase text-[#1D1C1C]">Belum Terdaftar Di UKM Manapun</h2>
         <p className="text-xs md:text-sm font-bold text-stone-600 max-w-md mx-auto">
@@ -43,28 +43,28 @@ export const MahasiswaDashboard: React.FC<MahasiswaDashboardProps> = ({
       bg: 'bg-[#FFF48D]',
       textColor: 'text-[#1D1C1C]',
       icon: IconClock,
-      badge: '⏳ MENUNGGU VERIFIKASI',
+      badge: 'MENUNGGU VERIFIKASI',
       desc: 'Pendaftaran Anda sedang ditinjau oleh Pengurus/Pembina UKM. Harap periksa halaman ini secara berkala.',
     },
     ACCEPTED: {
       bg: 'bg-[#83F582]',
       textColor: 'text-[#1D1C1C]',
       icon: IconCheck,
-      badge: '✅ DISETUJUI (RESMI ANGGOTA)',
+      badge: 'DISETUJUI (RESMI ANGGOTA)',
       desc: 'Selamat! Pendaftaran Anda telah disetujui. Anda resmi menjadi anggota UKM ini.',
     },
     REJECTED: {
       bg: 'bg-[#D64545]',
       textColor: 'text-white',
       icon: IconX,
-      badge: '❌ PENDAFTARAN DITOLAK',
+      badge: 'PENDAFTARAN DITOLAK',
       desc: 'Pendaftaran Anda ditolak. Anda kini diperbolehkan untuk memilih dan mendaftar di UKM lain.',
     },
     CANCELLED: {
       bg: 'bg-stone-200',
       textColor: 'text-stone-800',
       icon: IconAlert,
-      badge: '🚫 DIBATALKAN',
+      badge: 'DIBATALKAN',
       desc: 'Pendaftaran ini telah dibatalkan. Anda dapat mendaftar kembali.',
     },
   };

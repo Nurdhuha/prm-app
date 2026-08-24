@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { LIST_UKM, FAKULTAS_UNESA, PRODI_UNESA } from '@/data/mockData';
 import { MahasiswaProfile, PendaftaranUKM } from '@/types';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
-import { IconSearch, IconCheck, IconSend, IconAlert, IconInfo } from './NeoIcons';
+import { IconSearch, IconCheck, IconSend, IconAlert, IconInfo, IconX } from './NeoIcons';
 
 interface RegistrationFormProps {
   userEmail: string;
@@ -347,7 +347,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                       Nomor WhatsApp Valid (Format 08 / 628)
                     </>
                   ) : (
-                    '⚠️ Masukkan nomor WhatsApp aktif diawali 08 / 628 (Min 10 Digit)'
+                    <>
+                      <IconX className="w-3.5 h-3.5 text-amber-700 shrink-0 inline mr-1" />
+                      Masukkan nomor WhatsApp aktif diawali 08 / 628 (Min 10 Digit)
+                    </>
                   )}
                 </p>
               )}
