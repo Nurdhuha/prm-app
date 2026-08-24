@@ -375,7 +375,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             {/* Field 5: Nomor WhatsApp Active Validation */}
             <div className="md:col-span-2">
               <label className="block text-[11px] sm:text-xs font-black uppercase text-[#1D1C1C] mb-1.5">
-                5. Nomor WhatsApp Aktif (Untuk Koordinasi UKM)
+                5. Nomor WhatsApp Aktif
               </label>
               <input
                 type="text"
