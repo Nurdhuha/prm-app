@@ -221,6 +221,19 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         </div>
       </div>
 
+      {/* Disclaimer Notice Banner */}
+      <div className="bg-[#FFF48D] border-3 sm:border-4 border-[#1D1C1C] p-4 sm:p-5 rounded-2xl shadow-[3px_3px_0px_#1D1C1C] sm:shadow-[5px_5px_0px_#1D1C1C] flex items-start gap-3">
+        <IconInfo className="w-5 h-5 text-[#1D1C1C] shrink-0 mt-0.5" />
+        <div>
+          <h3 className="font-black text-xs sm:text-sm uppercase tracking-wider text-[#1D1C1C]">
+            Disclaimer Resmi Pendaftaran UKM
+          </h3>
+          <p className="text-xs font-bold text-stone-900 mt-1 leading-relaxed">
+            Informasi terbaru mengenai seleksi & penerimaan anggota UKM berasal dari masing-masing UKM. Sistem ini berfungsi sebagai pendataan pendaftaran mahasiswa secara terpusat.
+          </p>
+        </div>
+      </div>
+
       {/* Lock Notice if already registered */}
       {isLocked && (
         <div className="bg-[#FFF48D] border-3 sm:border-4 border-[#1D1C1C] p-4 sm:p-5 rounded-2xl shadow-[3px_3px_0px_#1D1C1C] sm:shadow-[5px_5px_0px_#1D1C1C] flex items-start gap-2.5">
