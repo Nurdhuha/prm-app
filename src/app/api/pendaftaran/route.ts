@@ -139,8 +139,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // 5. Create new pendaftaran record
-    const regId = `REG-2026-${Math.floor(100 + Math.random() * 900)}`;
+    // 5. Create new pendaftaran record with collision-proof unique ID
+    const regId = `REG-2026-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const regRes = await client.query(
       `INSERT INTO pendaftaran_ukm (id, mahasiswa_id, ukm_id, ukm_nama, status)
        VALUES ($1, $2, $3, $4, 'PENDING')
