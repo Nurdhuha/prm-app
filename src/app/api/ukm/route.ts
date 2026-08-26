@@ -27,11 +27,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Nama dan Kategori UKM wajib diisi.' }, { status: 400 });
     }
 
-    // Generate clean ID if not provided (e.g. ukm-66)
+    // Generate clean collision-proof ID if not provided (e.g. ukm-82)
     let ukmId = id ? id.trim().toLowerCase() : '';
     if (!ukmId) {
-      const countRes = await db.query('SELECT COUNT(*) FROM ukm');
-      const nextNum = parseInt(countRes.rows[0].count, 10) + 1;
+      const maxIdRes = await db.query(
+        "SELECT id FROM ukm WHERE id ~ '^ukm-[0-9]+$' ORDER BY CAST(SUBSTRING(id FROM 5) AS INT) DESC LIMIT 1"
+      );
+      let nextNum = 1;
+      if (maxIdRes.rows.length > 0) {
+        const lastNum = parseInt(maxIdRes.rows[0].id.replace('ukm-', ''), 10);
+        if (!isNaN(lastNum)) nextNum = lastNum + 1;
+      }
       ukmId = `ukm-${nextNum}`;
     }
 
