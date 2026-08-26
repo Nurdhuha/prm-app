@@ -105,7 +105,23 @@ export async function POST(request: Request) {
     );
     const mahasiswaId = mhsRes.rows[0].id;
 
-    // 3. Strict 1 UKM Check: Check if mahasiswa already has PENDING or ACCEPTED registration
+    // 3. Strict Closed UKM Check: Verify UKM status in PostgreSQL
+    const ukmStatusCheck = await client.query('SELECT status, nama FROM ukm WHERE id = $1', [ukmId]);
+    if (ukmStatusCheck.rows.length > 0) {
+      const ukmStat = (ukmStatusCheck.rows[0].status || '').toLowerCase();
+      if (ukmStat === 'closed' || ukmStat === 'tutup') {
+        await client.query('ROLLBACK');
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Pendaftaran untuk ${ukmStatusCheck.rows[0].nama || 'UKM ini'} saat ini telah DITUTUP oleh pengurus.`,
+          },
+          { status: 422 }
+        );
+      }
+    }
+
+    // 4. Strict 1 UKM Check: Check if mahasiswa already has PENDING or ACCEPTED registration
     const existingRegistration = await client.query(
       `SELECT id, status, ukm_nama FROM pendaftaran_ukm 
        WHERE mahasiswa_id = $1 AND status IN ('PENDING', 'ACCEPTED') FOR UPDATE`,
@@ -123,7 +139,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Create new pendaftaran record
+    // 5. Create new pendaftaran record
     const regId = `REG-2026-${Math.floor(100 + Math.random() * 900)}`;
     const regRes = await client.query(
       `INSERT INTO pendaftaran_ukm (id, mahasiswa_id, ukm_id, ukm_nama, status)
