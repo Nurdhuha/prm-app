@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { LIST_UKM } from '@/data/mockData';
 
-// GET /api/ukm - Get all UKMs from PostgreSQL
+// GET /api/ukm - Get all UKMs from PostgreSQL (with fallback)
 export async function GET() {
   try {
     const ukmRes = await db.query(
       'SELECT id, nama, kategori, deskripsi, logo, pembina, status, created_at FROM ukm ORDER BY id ASC'
     );
+    if (ukmRes.rows && ukmRes.rows.length > 0) {
+      return NextResponse.json({
+        success: true,
+        data: ukmRes.rows,
+      });
+    }
     return NextResponse.json({
       success: true,
-      data: ukmRes.rows,
+      data: LIST_UKM,
     });
   } catch (error: any) {
     console.error('API GET UKM Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, data: LIST_UKM, fallback: true });
   }
 }
 

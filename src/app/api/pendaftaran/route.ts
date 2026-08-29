@@ -50,7 +50,7 @@ export async function GET() {
     return NextResponse.json({ success: true, data: formatted });
   } catch (error: any) {
     console.error('API GET Pendaftaran Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, data: [], dbOffline: true });
   }
 }
 
