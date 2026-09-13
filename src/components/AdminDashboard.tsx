@@ -256,15 +256,112 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   });
 
-  // Handle Export Excel
+  // Handle Export Excel (2 Tab: Tab 1 Rekapitulasi & Tab 2 Semua Pendaftar dengan AutoFilter)
   const handleExportExcel = () => {
-    const exportData = filteredList.map((item, idx) => ({
+    const workbook = XLSX.utils.book_new();
+    const targetData = filteredList;
+
+    // ==========================================
+    // --- TAB 1: REKAPITULASI (EXECUTIVE SUMMARY) ---
+    // ==========================================
+    // 1. Rekapitulasi per UKM
+    const ukmMap = new Map<string, { nama: string; kategori: string; count: number }>();
+
+    // Jika superadmin, tampilkan seluruh katalog UKM resmi
+    if (!isPengurus) {
+      LIST_UKM.forEach((u) => {
+        ukmMap.set(u.id, { nama: u.nama, kategori: u.kategori, count: 0 });
+      });
+    }
+
+    // Hitung pendaftar dari data yang sedang aktif
+    targetData.forEach((item) => {
+      const uId = item.ukmId || item.ukmNama;
+      if (!ukmMap.has(uId)) {
+        const matched = LIST_UKM.find((u) => u.id === item.ukmId || u.nama === item.ukmNama);
+        ukmMap.set(uId, {
+          nama: item.ukmNama,
+          kategori: matched?.kategori || 'Umum',
+          count: 0,
+        });
+      }
+      const u = ukmMap.get(uId)!;
+      u.count += 1;
+    });
+
+    // Urutkan UKM: peminat terbanyak di posisi paling atas
+    const ukmSummaryList = Array.from(ukmMap.values()).sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.nama.localeCompare(b.nama);
+    });
+
+    const totalPendaftar = targetData.length;
+
+    const ukmRows = ukmSummaryList.map((u, idx) => [
+      idx + 1,
+      u.nama,
+      u.kategori,
+      u.count,
+    ]);
+
+    // 2. Rekapitulasi per Fakultas
+    const fakMap = new Map<string, number>();
+    targetData.forEach((item) => {
+      const fak = item.mahasiswa.fakultas || 'Lainnya / Belum Terdata';
+      fakMap.set(fak, (fakMap.get(fak) || 0) + 1);
+    });
+
+    const fakSummaryList = Array.from(fakMap.entries())
+      .map(([fakultas, count]) => ({ fakultas, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const fakRows = fakSummaryList.map((f, idx) => [
+      idx + 1,
+      f.fakultas,
+      f.count,
+    ]);
+
+    const nowStr = new Date().toLocaleString('id-ID', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+    });
+
+    const rekapAoa: any[][] = [
+      ['PEKAN RAYA MAHASISWA (PRM) UNIVERSITAS NEGERI SURABAYA 2026'],
+      ['Laporan Rekapitulasi Pendaftaran Unit Kegiatan Mahasiswa (UKM)'],
+      [`Waktu Unduh: ${nowStr}`],
+      [`Total Mahasiswa Terdata: ${totalPendaftar} Mahasiswa`],
+      [],
+      ['A. REKAPITULASI JUMLAH PENDAFTAR PER UKM'],
+      ['No', 'Nama Unit Kegiatan Mahasiswa (UKM)', 'Kategori', 'Jumlah Pendaftar'],
+      ...ukmRows,
+      ['', 'TOTAL KESELURUHAN', '', totalPendaftar],
+      [],
+      ['B. PERSEBARAN PENDAFTAR PER FAKULTAS'],
+      ['No', 'Nama Fakultas', 'Jumlah Mahasiswa'],
+      ...fakRows,
+      ['', 'TOTAL KESELURUHAN', totalPendaftar],
+    ];
+
+    const wsRekap = XLSX.utils.aoa_to_sheet(rekapAoa);
+    wsRekap['!cols'] = [
+      { wch: 6 },
+      { wch: 45 },
+      { wch: 30 },
+      { wch: 20 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, wsRekap, 'Rekapitulasi');
+
+    // ========================================================
+    // --- TAB 2: SEMUA PENDAFTAR (DENGAN EXCEL AUTOFILTER) ---
+    // ========================================================
+    const detailData = targetData.map((item, idx) => ({
       No: idx + 1,
-      'Nama Mahasiswa': item.mahasiswa.nama,
       NIM: item.mahasiswa.nim,
+      'Nama Mahasiswa': item.mahasiswa.nama,
       Fakultas: item.mahasiswa.fakultas,
       'Program Studi': item.mahasiswa.prodi,
-      'Nomor WhatsApp': item.mahasiswa.noHp,
+      'Nomor WhatsApp': String(item.mahasiswa.noHp || ''),
       Email: item.mahasiswa.email || '-',
       'UKM Pilihan': item.ukmNama,
       'Status Pendaftaran': item.status,
@@ -272,23 +369,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       'Tanggal Daftar': item.tanggalDaftar,
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    const sheetName = isPengurus ? (session?.managedUkmNama?.substring(0, 25) || 'Anggota UKM') : 'Rekap Pendaftaran';
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    const wsDetail = XLSX.utils.json_to_sheet(detailData);
 
-    // Auto-fit column width
-    const max_width = exportData.reduce((w, r) => {
-      return Object.keys(r).reduce((w2, k) => {
-        const val = String((r as any)[k]);
-        return Math.max(w2, val.length + 3);
-      }, w);
-    }, 10);
-    worksheet['!cols'] = [{ wch: max_width }];
+    // Aktifkan Fitur Dropdown Filter (AutoFilter) pada Header Tab 2
+    if (detailData.length > 0 && wsDetail['!ref']) {
+      wsDetail['!autofilter'] = { ref: wsDetail['!ref'] };
+    }
 
+    // Auto-fit kolom Tab 2 agar teks tidak terpotong
+    if (detailData.length > 0) {
+      const keys = Object.keys(detailData[0]);
+      wsDetail['!cols'] = keys.map((k) => {
+        let maxLen = k.length;
+        detailData.forEach((row) => {
+          const val = String((row as any)[k] ?? '');
+          if (val.length > maxLen) maxLen = val.length;
+        });
+        return { wch: Math.min(maxLen + 3, 50) };
+      });
+    }
+
+    const tab2Name = isPengurus ? (session?.managedUkmNama?.substring(0, 25) || 'Daftar Pendaftar') : 'Semua Pendaftar';
+    XLSX.utils.book_append_sheet(workbook, wsDetail, tab2Name);
+
+    // Nama file export
     const fileName = isPengurus
-      ? `Rekap_Anggota_${session?.managedUkmId}_2026.xlsx`
-      : `Rekap_Pendaftaran_UKM_UNESA_2026.xlsx`;
+      ? `Rekap_Anggota_${session?.managedUkmId || 'UKM'}_2026.xlsx`
+      : `Rekap_Pendaftaran_PRM_UNESA_2026.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
   };
