@@ -297,12 +297,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     const totalPendaftar = targetData.length;
 
-    const ukmRows = ukmSummaryList.map((u, idx) => [
-      idx + 1,
-      u.nama,
-      u.kategori,
-      u.count,
-    ]);
+    const ukmRows = ukmSummaryList.map((u, idx) => {
+      const pct = totalPendaftar > 0 ? ((u.count / totalPendaftar) * 100).toFixed(1) + '%' : '0.0%';
+      return [
+        idx + 1,
+        u.nama,
+        u.kategori,
+        u.count,
+        pct,
+      ];
+    });
 
     // 2. Rekapitulasi per Fakultas
     const fakMap = new Map<string, number>();
@@ -315,11 +319,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       .map(([fakultas, count]) => ({ fakultas, count }))
       .sort((a, b) => b.count - a.count);
 
-    const fakRows = fakSummaryList.map((f, idx) => [
-      idx + 1,
-      f.fakultas,
-      f.count,
-    ]);
+    const fakRows = fakSummaryList.map((f, idx) => {
+      const pct = totalPendaftar > 0 ? ((f.count / totalPendaftar) * 100).toFixed(1) + '%' : '0.0%';
+      return [
+        idx + 1,
+        f.fakultas,
+        f.count,
+        pct,
+      ];
+    });
 
     const nowStr = new Date().toLocaleString('id-ID', {
       dateStyle: 'long',
@@ -333,14 +341,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       [`Total Mahasiswa Terdata: ${totalPendaftar} Mahasiswa`],
       [],
       ['A. REKAPITULASI JUMLAH PENDAFTAR PER UKM'],
-      ['No', 'Nama Unit Kegiatan Mahasiswa (UKM)', 'Kategori', 'Jumlah Pendaftar'],
+      ['No', 'Nama Unit Kegiatan Mahasiswa (UKM)', 'Kategori', 'Jumlah Pendaftar', 'Persentase Peminat (%)'],
       ...ukmRows,
-      ['', 'TOTAL KESELURUHAN', '', totalPendaftar],
+      ['', 'TOTAL KESELURUHAN', '', totalPendaftar, totalPendaftar > 0 ? '100.0%' : '0.0%'],
       [],
       ['B. PERSEBARAN PENDAFTAR PER FAKULTAS'],
-      ['No', 'Nama Fakultas', 'Jumlah Mahasiswa'],
+      ['No', 'Nama Fakultas', 'Jumlah Mahasiswa', 'Persentase (%)'],
       ...fakRows,
-      ['', 'TOTAL KESELURUHAN', totalPendaftar],
+      ['', 'TOTAL KESELURUHAN', totalPendaftar, totalPendaftar > 0 ? '100.0%' : '0.0%'],
     ];
 
     const wsRekap = XLSX.utils.aoa_to_sheet(rekapAoa);
@@ -349,6 +357,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       { wch: 45 },
       { wch: 30 },
       { wch: 20 },
+      { wch: 24 },
     ];
     XLSX.utils.book_append_sheet(workbook, wsRekap, 'Rekapitulasi');
 
@@ -375,6 +384,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (detailData.length > 0 && wsDetail['!ref']) {
       wsDetail['!autofilter'] = { ref: wsDetail['!ref'] };
     }
+
+    // Aktifkan Freeze Panes (Kunci Baris Judul & Filter agar tetap menempel di atas saat di-scroll)
+    wsDetail['!views'] = [{ state: 'frozen', ySplit: 1, activeCell: 'A2' }];
 
     // Auto-fit kolom Tab 2 agar teks tidak terpotong
     if (detailData.length > 0) {
