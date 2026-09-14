@@ -10,6 +10,7 @@ node_modules/
 
 # Testing & Scratch
 /scratch
+/output
 *.zip
 *.log
 

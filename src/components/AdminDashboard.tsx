@@ -5,6 +5,7 @@ import { PendaftaranUKM, UserSession } from '@/types';
 import { LIST_UKM } from '@/data/mockData';
 import { IconSearch, IconExcel, IconCheck, IconX, IconAlert, IconShieldCheck, IconKey, IconEye, IconEyeOff, IconPlus, IconEdit, IconTrash, IconGrid, IconChartLine, IconLock } from './NeoIcons';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface OfficerAccount {
   id: string;
@@ -256,160 +257,358 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     );
   });
 
-  // Handle Export Excel (2 Tab: Tab 1 Rekapitulasi & Tab 2 Semua Pendaftar dengan AutoFilter)
-  const handleExportExcel = () => {
-    const workbook = XLSX.utils.book_new();
-    const targetData = filteredList;
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
-    // ==========================================
-    // --- TAB 1: REKAPITULASI (EXECUTIVE SUMMARY) ---
-    // ==========================================
-    // 1. Rekapitulasi per UKM
-    const ukmMap = new Map<string, { nama: string; kategori: string; count: number }>();
+  // Handle Export Excel (Modern UNESA Theme with ExcelJS: 2 Tabs, Freeze Panes, AutoFilter, Full 11K Data)
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      // Prioritaskan seluruh data scoped (seluruh 11 ribu mahasiswa untuk superadmin)
+      const targetData = scopedList.length > 0 ? scopedList : pendaftaranList;
 
-    // Jika superadmin, tampilkan seluruh katalog UKM resmi
-    if (!isPengurus) {
-      LIST_UKM.forEach((u) => {
-        ukmMap.set(u.id, { nama: u.nama, kategori: u.kategori, count: 0 });
+      if (targetData.length === 0) {
+        alert('Belum ada data pendaftaran yang tersimpan di sistem.');
+        setIsExportingExcel(false);
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Pekan Raya Mahasiswa UNESA 2026';
+
+      // ==========================================
+      // --- TAB 1: REKAPITULASI (EXECUTIVE SUMMARY) ---
+      // ==========================================
+      const wsRekap = workbook.addWorksheet('Rekapitulasi', {
+        properties: { tabColor: { argb: 'FFEAB308' } }, // Emas
+        views: [{ showGridLines: true }],
       });
-    }
 
-    // Hitung pendaftar dari data yang sedang aktif
-    targetData.forEach((item) => {
-      const uId = item.ukmId || item.ukmNama;
-      if (!ukmMap.has(uId)) {
-        const matched = LIST_UKM.find((u) => u.id === item.ukmId || u.nama === item.ukmNama);
-        ukmMap.set(uId, {
-          nama: item.ukmNama,
-          kategori: matched?.kategori || 'Umum',
-          count: 0,
+      // 1. Header Banner
+      wsRekap.mergeCells('A1:E1');
+      const titleCell = wsRekap.getCell('A1');
+      titleCell.value = 'PEKAN RAYA MAHASISWA (PRM) UNIVERSITAS NEGERI SURABAYA 2026';
+      titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002B5B' } }; // Biru Navy UNESA
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      wsRekap.getRow(1).height = 32;
+
+      wsRekap.mergeCells('A2:E2');
+      const subCell = wsRekap.getCell('A2');
+      subCell.value = isPengurus
+        ? `Laporan Rekapitulasi Anggota — ${session?.managedUkmNama || 'UKM'}`
+        : 'Laporan Rekapitulasi Eksekutif Pendaftaran Unit Kegiatan Mahasiswa (UKM)';
+      subCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1D1C1C' } };
+      subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF48D' } }; // Kuning PRM
+      subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      wsRekap.getRow(2).height = 24;
+
+      const nowStr = new Date().toLocaleString('id-ID', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+      });
+
+      wsRekap.getCell('A4').value = 'Waktu Unduh:';
+      wsRekap.getCell('A4').font = { name: 'Segoe UI', size: 10, bold: true };
+      wsRekap.getCell('B4').value = nowStr;
+      wsRekap.getCell('B4').font = { name: 'Segoe UI', size: 10 };
+
+      wsRekap.getCell('A5').value = 'Total Pendaftar Terdata:';
+      wsRekap.getCell('A5').font = { name: 'Segoe UI', size: 10, bold: true };
+      wsRekap.getCell('B5').value = `${targetData.length.toLocaleString('id-ID')} Mahasiswa`;
+      wsRekap.getCell('B5').font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF002B5B' } };
+
+      // 2. Section A: Rekap per UKM
+      wsRekap.getCell('A7').value = 'A. REKAPITULASI JUMLAH PENDAFTAR PER UKM';
+      wsRekap.getCell('A7').font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF002B5B' } };
+
+      const headersUkm = ['No', 'Nama Unit Kegiatan Mahasiswa (UKM)', 'Kategori', 'Jumlah Pendaftar', 'Persentase Peminat (%)'];
+      const r8 = wsRekap.getRow(8);
+      r8.values = headersUkm;
+      r8.height = 26;
+      r8.eachCell((cell) => {
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } }; // Biru Navy
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'medium', color: { argb: 'FF002B5B' } },
+          bottom: { style: 'medium', color: { argb: 'FF002B5B' } },
+          left: { style: 'thin', color: { argb: 'FF93C5FD' } },
+          right: { style: 'thin', color: { argb: 'FF93C5FD' } },
+        };
+      });
+
+      // Hitung per UKM
+      const ukmMap = new Map<string, { nama: string; kategori: string; count: number }>();
+      if (!isPengurus) {
+        LIST_UKM.forEach((u) => {
+          ukmMap.set(u.id, { nama: u.nama, kategori: u.kategori, count: 0 });
         });
       }
-      const u = ukmMap.get(uId)!;
-      u.count += 1;
-    });
 
-    // Urutkan UKM: peminat terbanyak di posisi paling atas
-    const ukmSummaryList = Array.from(ukmMap.values()).sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      return a.nama.localeCompare(b.nama);
-    });
-
-    const totalPendaftar = targetData.length;
-
-    const ukmRows = ukmSummaryList.map((u, idx) => {
-      const pct = totalPendaftar > 0 ? ((u.count / totalPendaftar) * 100).toFixed(1) + '%' : '0.0%';
-      return [
-        idx + 1,
-        u.nama,
-        u.kategori,
-        u.count,
-        pct,
-      ];
-    });
-
-    // 2. Rekapitulasi per Fakultas
-    const fakMap = new Map<string, number>();
-    targetData.forEach((item) => {
-      const fak = item.mahasiswa.fakultas || 'Lainnya / Belum Terdata';
-      fakMap.set(fak, (fakMap.get(fak) || 0) + 1);
-    });
-
-    const fakSummaryList = Array.from(fakMap.entries())
-      .map(([fakultas, count]) => ({ fakultas, count }))
-      .sort((a, b) => b.count - a.count);
-
-    const fakRows = fakSummaryList.map((f, idx) => {
-      const pct = totalPendaftar > 0 ? ((f.count / totalPendaftar) * 100).toFixed(1) + '%' : '0.0%';
-      return [
-        idx + 1,
-        f.fakultas,
-        f.count,
-        pct,
-      ];
-    });
-
-    const nowStr = new Date().toLocaleString('id-ID', {
-      dateStyle: 'long',
-      timeStyle: 'short',
-    });
-
-    const rekapAoa: any[][] = [
-      ['PEKAN RAYA MAHASISWA (PRM) UNIVERSITAS NEGERI SURABAYA 2026'],
-      ['Laporan Rekapitulasi Pendaftaran Unit Kegiatan Mahasiswa (UKM)'],
-      [`Waktu Unduh: ${nowStr}`],
-      [`Total Mahasiswa Terdata: ${totalPendaftar} Mahasiswa`],
-      [],
-      ['A. REKAPITULASI JUMLAH PENDAFTAR PER UKM'],
-      ['No', 'Nama Unit Kegiatan Mahasiswa (UKM)', 'Kategori', 'Jumlah Pendaftar', 'Persentase Peminat (%)'],
-      ...ukmRows,
-      ['', 'TOTAL KESELURUHAN', '', totalPendaftar, totalPendaftar > 0 ? '100.0%' : '0.0%'],
-      [],
-      ['B. PERSEBARAN PENDAFTAR PER FAKULTAS'],
-      ['No', 'Nama Fakultas', 'Jumlah Mahasiswa', 'Persentase (%)'],
-      ...fakRows,
-      ['', 'TOTAL KESELURUHAN', totalPendaftar, totalPendaftar > 0 ? '100.0%' : '0.0%'],
-    ];
-
-    const wsRekap = XLSX.utils.aoa_to_sheet(rekapAoa);
-    wsRekap['!cols'] = [
-      { wch: 6 },
-      { wch: 45 },
-      { wch: 30 },
-      { wch: 20 },
-      { wch: 24 },
-    ];
-    XLSX.utils.book_append_sheet(workbook, wsRekap, 'Rekapitulasi');
-
-    // ========================================================
-    // --- TAB 2: SEMUA PENDAFTAR (DENGAN EXCEL AUTOFILTER) ---
-    // ========================================================
-    const detailData = targetData.map((item, idx) => ({
-      No: idx + 1,
-      NIM: item.mahasiswa.nim,
-      'Nama Mahasiswa': item.mahasiswa.nama,
-      Fakultas: item.mahasiswa.fakultas,
-      'Program Studi': item.mahasiswa.prodi,
-      'Nomor WhatsApp': String(item.mahasiswa.noHp || ''),
-      Email: item.mahasiswa.email || '-',
-      'UKM Pilihan': item.ukmNama,
-      'Status Pendaftaran': item.status,
-      'Catatan Penolakan': item.catatanPenolakan || '-',
-      'Tanggal Daftar': item.tanggalDaftar,
-    }));
-
-    const wsDetail = XLSX.utils.json_to_sheet(detailData);
-
-    // Aktifkan Fitur Dropdown Filter (AutoFilter) pada Header Tab 2
-    if (detailData.length > 0 && wsDetail['!ref']) {
-      wsDetail['!autofilter'] = { ref: wsDetail['!ref'] };
-    }
-
-    // Aktifkan Freeze Panes (Kunci Baris Judul & Filter agar tetap menempel di atas saat di-scroll)
-    wsDetail['!views'] = [{ state: 'frozen', ySplit: 1, activeCell: 'A2' }];
-
-    // Auto-fit kolom Tab 2 agar teks tidak terpotong
-    if (detailData.length > 0) {
-      const keys = Object.keys(detailData[0]);
-      wsDetail['!cols'] = keys.map((k) => {
-        let maxLen = k.length;
-        detailData.forEach((row) => {
-          const val = String((row as any)[k] ?? '');
-          if (val.length > maxLen) maxLen = val.length;
-        });
-        return { wch: Math.min(maxLen + 3, 50) };
+      targetData.forEach((item) => {
+        const uId = item.ukmId || item.ukmNama;
+        if (!ukmMap.has(uId)) {
+          const matched = LIST_UKM.find((u) => u.id === item.ukmId || u.nama === item.ukmNama);
+          ukmMap.set(uId, {
+            nama: item.ukmNama,
+            kategori: matched?.kategori || 'Umum',
+            count: 0,
+          });
+        }
+        const u = ukmMap.get(uId)!;
+        u.count += 1;
       });
+
+      const ukmSummaryList = Array.from(ukmMap.values()).sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.nama.localeCompare(b.nama);
+      });
+
+      const totalPendaftarAll = targetData.length;
+
+      ukmSummaryList.forEach((u, i) => {
+        const pct = totalPendaftarAll > 0 ? ((u.count / totalPendaftarAll) * 100).toFixed(1) + '%' : '0.0%';
+        const r = wsRekap.addRow([i + 1, u.nama, u.kategori, u.count, pct]);
+        r.height = 22;
+        const isEven = i % 2 === 1;
+        r.eachCell((cell, colNum) => {
+          cell.font = { name: 'Segoe UI', size: 10 };
+          if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+          if (colNum === 1 || colNum === 4 || colNum === 5) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          }
+        });
+      });
+
+      // Total UKM Row
+      const totalUkmRow = wsRekap.addRow(['', 'TOTAL KESELURUHAN', '', totalPendaftarAll, totalPendaftarAll > 0 ? '100.0%' : '0.0%']);
+      totalUkmRow.height = 24;
+      totalUkmRow.eachCell((cell, colNum) => {
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1D1C1C' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF08A' } };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCA8A04' } },
+          bottom: { style: 'double', color: { argb: 'FFCA8A04' } },
+          left: { style: 'thin', color: { argb: 'FFCA8A04' } },
+          right: { style: 'thin', color: { argb: 'FFCA8A04' } },
+        };
+        if (colNum === 4 || colNum === 5) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+
+      // 3. Section B: Rekap per Fakultas
+      wsRekap.addRow([]); // Blank row
+      const secBRow = wsRekap.addRow(['B. PERSEBARAN PENDAFTAR PER FAKULTAS']);
+      secBRow.getCell(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF002B5B' } };
+
+      const headersFak = ['No', 'Nama Fakultas', 'Jumlah Mahasiswa', 'Persentase (%)'];
+      const rFakHeader = wsRekap.addRow(headersFak);
+      rFakHeader.height = 26;
+      rFakHeader.eachCell((cell) => {
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'medium', color: { argb: 'FF002B5B' } },
+          bottom: { style: 'medium', color: { argb: 'FF002B5B' } },
+          left: { style: 'thin', color: { argb: 'FF93C5FD' } },
+          right: { style: 'thin', color: { argb: 'FF93C5FD' } },
+        };
+      });
+
+      const fakMap = new Map<string, number>();
+      targetData.forEach((item) => {
+        const fak = item.mahasiswa?.fakultas || 'Lainnya / Belum Terdata';
+        fakMap.set(fak, (fakMap.get(fak) || 0) + 1);
+      });
+
+      const fakSummaryList = Array.from(fakMap.entries())
+        .map(([fakultas, count]) => ({ fakultas, count }))
+        .sort((a, b) => b.count - a.count);
+
+      fakSummaryList.forEach((f, i) => {
+        const pct = totalPendaftarAll > 0 ? ((f.count / totalPendaftarAll) * 100).toFixed(1) + '%' : '0.0%';
+        const r = wsRekap.addRow([i + 1, f.fakultas, f.count, pct]);
+        r.height = 22;
+        const isEven = i % 2 === 1;
+        r.eachCell((cell, colNum) => {
+          cell.font = { name: 'Segoe UI', size: 10 };
+          if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+          if (colNum === 1 || colNum === 3 || colNum === 4) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          }
+        });
+      });
+
+      // Total Fak Row
+      const totalFakRow = wsRekap.addRow(['', 'TOTAL KESELURUHAN', totalPendaftarAll, totalPendaftarAll > 0 ? '100.0%' : '0.0%']);
+      totalFakRow.height = 24;
+      totalFakRow.eachCell((cell, colNum) => {
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1D1C1C' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF08A' } };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCA8A04' } },
+          bottom: { style: 'double', color: { argb: 'FFCA8A04' } },
+          left: { style: 'thin', color: { argb: 'FFCA8A04' } },
+          right: { style: 'thin', color: { argb: 'FFCA8A04' } },
+        };
+        if (colNum === 3 || colNum === 4) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+
+      wsRekap.columns = [
+        { width: 8 },
+        { width: 44 },
+        { width: 28 },
+        { width: 20 },
+        { width: 24 },
+      ];
+
+      // ========================================================
+      // --- TAB 2: SEMUA PENDAFTAR (DENGAN AUTOFILTER & STYLING) ---
+      // ========================================================
+      const tab2Title = isPengurus ? 'Daftar Pendaftar' : 'Semua Pendaftar';
+      const wsDetail = workbook.addWorksheet(tab2Title, {
+        properties: { tabColor: { argb: 'FF2563EB' } }, // Biru
+        views: [{ state: 'frozen', ySplit: 1, showGridLines: true }],
+      });
+
+      const headersDetail = [
+        'No',
+        'NIM',
+        'Nama Mahasiswa',
+        'Fakultas',
+        'Program Studi',
+        'Nomor WhatsApp',
+        'Email',
+        'UKM Pilihan',
+        'Status Pendaftaran',
+        'Catatan Penolakan',
+        'Tanggal Daftar',
+      ];
+
+      const rDetailHeader = wsDetail.addRow(headersDetail);
+      rDetailHeader.height = 28;
+      rDetailHeader.eachCell((cell) => {
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002B5B' } }; // Biru Navy Gelap
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'medium', color: { argb: 'FF002B5B' } },
+          bottom: { style: 'medium', color: { argb: 'FF002B5B' } },
+          left: { style: 'thin', color: { argb: 'FF93C5FD' } },
+          right: { style: 'thin', color: { argb: 'FF93C5FD' } },
+        };
+      });
+
+      // Enable AutoFilter on row 1
+      wsDetail.autoFilter = 'A1:K1';
+
+      targetData.forEach((item, idx) => {
+        const rowVal = [
+          idx + 1,
+          item.mahasiswa?.nim || '-',
+          item.mahasiswa?.nama || '-',
+          item.mahasiswa?.fakultas || '-',
+          item.mahasiswa?.prodi || '-',
+          String(item.mahasiswa?.noHp || '-'),
+          item.mahasiswa?.email || '-',
+          item.ukmNama || '-',
+          item.status || 'PENDING',
+          item.catatanPenolakan || '-',
+          item.tanggalDaftar || '-',
+        ];
+        const r = wsDetail.addRow(rowVal);
+        r.height = 22;
+        const isEven = idx % 2 === 1;
+
+        r.eachCell((cell, colNum) => {
+          cell.font = { name: 'Segoe UI', size: 10 };
+          if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+
+          // Alignment
+          if ([1, 2, 6, 9, 11].includes(colNum)) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          }
+
+          // Badge Status Font Color
+          if (colNum === 9) {
+            if (cell.value === 'PENDING') {
+              cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFD97706' } }; // Oranye
+            } else if (cell.value === 'ACCEPTED') {
+              cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF15803D' } }; // Hijau
+            } else if (cell.value === 'REJECTED') {
+              cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFB91C1C' } }; // Merah
+            }
+          }
+        });
+      });
+
+      wsDetail.columns = [
+        { width: 6 },
+        { width: 16 },
+        { width: 30 },
+        { width: 28 },
+        { width: 28 },
+        { width: 18 },
+        { width: 32 },
+        { width: 30 },
+        { width: 20 },
+        { width: 24 },
+        { width: 18 },
+      ];
+
+      // Download file in browser
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = isPengurus
+        ? `Rekap_Pendaftar_${session?.managedUkmId || 'UKM'}_2026.xlsx`
+        : `Rekap_Pendaftaran_PRM_UNESA_2026.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export Excel Error:', err);
+      alert('Terjadi kesalahan saat memproses ekspor Excel.');
+    } finally {
+      setIsExportingExcel(false);
     }
-
-    const tab2Name = isPengurus ? (session?.managedUkmNama?.substring(0, 25) || 'Daftar Pendaftar') : 'Semua Pendaftar';
-    XLSX.utils.book_append_sheet(workbook, wsDetail, tab2Name);
-
-    // Nama file export
-    const fileName = isPengurus
-      ? `Rekap_Anggota_${session?.managedUkmId || 'UKM'}_2026.xlsx`
-      : `Rekap_Pendaftaran_PRM_UNESA_2026.xlsx`;
-
-    XLSX.writeFile(workbook, fileName);
   };
 
   const openRejectModal = (item: PendaftaranUKM) => {
@@ -515,9 +714,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleExportExcel}
-            className="w-full sm:w-auto px-4 py-2.5 bg-[#83F582] hover:bg-[#68e067] text-[#1D1C1C] font-black text-xs uppercase rounded-xl border-3 border-[#1D1C1C] shadow-[3px_3px_0px_#1D1C1C] active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+            disabled={isExportingExcel}
+            className="w-full sm:w-auto px-4 py-2.5 bg-[#83F582] hover:bg-[#68e067] disabled:opacity-60 text-[#1D1C1C] font-black text-xs uppercase rounded-xl border-3 border-[#1D1C1C] shadow-[3px_3px_0px_#1D1C1C] active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
           >
-            <IconExcel className="w-4 h-4" /> Ekspor Excel (.xlsx)
+            {isExportingExcel ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-[#1D1C1C] border-t-transparent rounded-full animate-spin"></span>
+                <span>Mengekspor Data...</span>
+              </>
+            ) : (
+              <>
+                <IconExcel className="w-4 h-4" />
+                <span>Ekspor Excel ({scopedList.length.toLocaleString('id-ID')} Data)</span>
+              </>
+            )}
           </button>
         </div>
       </div>
